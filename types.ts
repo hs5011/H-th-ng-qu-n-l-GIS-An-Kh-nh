@@ -23,6 +23,12 @@ export interface MedalType {
   code: string;
 }
 
+export interface MeritType {
+  id: string;
+  name: string;
+  code: string;
+}
+
 export interface Neighborhood {
   id: string;
   nameNew: string;
@@ -96,12 +102,28 @@ export interface MedalRecord {
   LinkedHouseId: string;
   HoTen: string;
   QuanHe: string;
-  LoaiDoiTuong: string; // Tên loại huân chương
+  LoaiDoiTuong: string; // Huân chương hạng nhất, hạng nhì...
   SoQuanLyHS: string;
   SoTien: number;
   DienThoai: string;
   Email: string;
-  GhiChu?: string;
+  GhiChu: string;
+  Status: 'Active' | 'Inactive';
+  CreatedAt: string;
+  CreatedBy: string;
+}
+
+export interface MeritRecord {
+  id: string;
+  LinkedHouseId: string;
+  HoTen: string;
+  QuanHe: string;
+  LoaiDoiTuong: string; // Thương binh, Bệnh binh, Người có công giúp đỡ cách mạng...
+  SoQuanLyHS: string;
+  SoTien: number;
+  DienThoai: string;
+  Email: string;
+  GhiChu: string;
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;

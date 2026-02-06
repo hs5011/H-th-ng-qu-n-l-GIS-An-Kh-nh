@@ -199,7 +199,7 @@ const HouseForm: React.FC<HouseFormProps> = ({
                               <span className="flex items-center gap-1 text-slate-400 font-medium"><HeartOff size={12} /> {member.TrangThai}</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                          <td className="px-4 py-3 text-right">
                             <button type="button" onClick={() => removeFamilyMember(member.id)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg">
                               <Trash2 size={14} />
                             </button>
@@ -347,7 +347,7 @@ const HouseForm: React.FC<HouseFormProps> = ({
 
         {/* Tabs */}
         <div className="flex bg-slate-50 px-6 gap-6">
-          <TabButton active={activeTab === 'Owner'} onClick={() => setActiveTab('Owner')} icon={<User size={18} />} label="Chủ hộ & Người liên quan" />
+          <TabButton active={activeTab === 'Owner'} onClick={() => setActiveTab('Owner'} icon={<User size={18} />} label="Chủ hộ & Người liên quan" />
           <TabButton active={activeTab === 'Address'} onClick={() => setActiveTab('Address')} icon={<Navigation size={18} />} label="Địa chỉ" />
           <TabButton active={activeTab === 'Legal'} onClick={() => setActiveTab('Legal')} icon={<FileText size={18} />} label="Pháp lý" />
           <TabButton active={activeTab === 'Technical'} onClick={() => setActiveTab('Technical')} icon={<Settings size={18} />} label="Kỹ thuật" />

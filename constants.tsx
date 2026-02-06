@@ -1,5 +1,5 @@
 
-import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralStatus, MedalType } from './types';
+import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralStatus, MedalType, MeritType } from './types';
 
 export const INITIAL_STREETS: Street[] = [
   { id: 'st1', name: 'Lê Lợi', code: 'D001' },
@@ -29,11 +29,20 @@ export const INITIAL_GENERAL_STATUS: GeneralStatus[] = [
 ];
 
 export const INITIAL_MEDAL_TYPES: MedalType[] = [
-  { id: 'mt1', name: 'Huân chương kháng chiến hạng nhất', code: 'HCKC1' },
-  { id: 'mt2', name: 'Huân chương kháng chiến hạng nhì', code: 'HCKC2' },
-  { id: 'mt3', name: 'Huân chương kháng chiến hạng ba', code: 'HCKC3' },
-  { id: 'mt4', name: 'Huy chương kháng chiến hạng nhất', code: 'HYCKC1' },
-  { id: 'mt5', name: 'Huy chương kháng chiến hạng nhì', code: 'HYCKC2' }
+  { id: 'mt1', name: 'Huân chương kháng chiến hạng nhất', code: 'HCKC_1' },
+  { id: 'mt2', name: 'Huân chương kháng chiến hạng nhì', code: 'HCKC_2' },
+  { id: 'mt3', name: 'Huân chương kháng chiến hạng ba', code: 'HCKC_3' },
+  { id: 'mt4', name: 'Huy chương kháng chiến hạng nhất', code: 'HYCKC_1' },
+  { id: 'mt5', name: 'Huy chương kháng chiến hạng nhì', code: 'HYCKC_2' }
+];
+
+export const INITIAL_MERIT_TYPES: MeritType[] = [
+  { id: 'met1', name: 'Anh hùng Lực lượng vũ trang nhân dân', code: 'AHLLVT' },
+  { id: 'met2', name: 'Bà mẹ Việt Nam anh hùng', code: 'BMVNAH' },
+  { id: 'met3', name: 'Thương binh', code: 'TB' },
+  { id: 'met4', name: 'Bệnh binh', code: 'BB' },
+  { id: 'met5', name: 'Người nhiễm chất độc hóa học', code: 'CDHH' },
+  { id: 'met6', name: 'Người có công giúp đỡ cách mạng', code: 'NCCGDCM' }
 ];
 
 export const INITIAL_WARD_BOUNDARY: WardBoundary = {

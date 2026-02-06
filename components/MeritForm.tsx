@@ -1,35 +1,35 @@
 
 import React, { useState, useMemo } from 'react';
-import { MedalRecord, HouseNumberRecord, RelationshipType, MedalType } from '../types';
-import { X, Save, Search, CheckCircle2, User, Building, Plus, Trash2, Award, List, Phone, Mail } from 'lucide-react';
+import { MeritRecord, HouseNumberRecord, RelationshipType, MeritType } from '../types';
+import { X, Save, Search, CheckCircle2, User, Building, Plus, Trash2, Heart, List, Phone, Mail } from 'lucide-react';
 
-interface MedalFormProps {
-  initialData?: Partial<MedalRecord>;
-  onSubmit: (dataList: Partial<MedalRecord>[]) => void;
+interface MeritFormProps {
+  initialData?: Partial<MeritRecord>;
+  onSubmit: (dataList: Partial<MeritRecord>[]) => void;
   onClose: () => void;
   isEditing?: boolean;
   houseRecords: HouseNumberRecord[];
   relationshipTypes: RelationshipType[];
-  medalTypes: MedalType[];
+  meritTypes: MeritType[];
 }
 
-const MedalForm: React.FC<MedalFormProps> = ({ 
+const MeritForm: React.FC<MeritFormProps> = ({ 
   initialData, 
   onSubmit, 
   onClose, 
   isEditing, 
   houseRecords,
   relationshipTypes,
-  medalTypes
+  meritTypes
 }) => {
   const [selectedHouseId, setSelectedHouseId] = useState<string | undefined>(initialData?.LinkedHouseId);
   const [houseSearch, setHouseSearch] = useState('');
   
-  const [medalsList, setMedalsList] = useState<Partial<MedalRecord>[]>(
+  const [meritsList, setMeritsList] = useState<Partial<MeritRecord>[]>(
     isEditing && initialData ? [initialData] : []
   );
 
-  const [currentMedal, setCurrentMedal] = useState<Partial<MedalRecord>>({
+  const [currentMerit, setCurrentMerit] = useState<Partial<MeritRecord>>({
     HoTen: '',
     QuanHe: '',
     LoaiDoiTuong: '',
@@ -54,11 +54,11 @@ const MedalForm: React.FC<MedalFormProps> = ({
   }, [selectedHouseId, houseRecords]);
 
   const handleAddToList = () => {
-    if (!currentMedal.HoTen) return alert('Vui lòng nhập họ tên người được khen thưởng');
-    if (!currentMedal.LoaiDoiTuong) return alert('Vui lòng chọn loại huân/huy chương');
+    if (!currentMerit.HoTen) return alert('Vui lòng nhập họ tên người có công');
+    if (!currentMerit.LoaiDoiTuong) return alert('Vui lòng chọn loại đối tượng');
     
-    setMedalsList(prev => [...prev, { ...currentMedal, id: Math.random().toString(36).substr(2, 9) }]);
-    setCurrentMedal({
+    setMeritsList(prev => [...prev, { ...currentMerit, id: Math.random().toString(36).substr(2, 9) }]);
+    setCurrentMerit({
       HoTen: '',
       QuanHe: '',
       LoaiDoiTuong: '',
@@ -71,14 +71,14 @@ const MedalForm: React.FC<MedalFormProps> = ({
   };
 
   const removeFromList = (index: number) => {
-    setMedalsList(prev => prev.filter((_, i) => i !== index));
+    setMeritsList(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSaveAll = () => {
     if (!selectedHouseId) return alert('Vui lòng chọn số nhà liên kết');
-    if (medalsList.length === 0) return alert('Vui lòng thêm ít nhất một hồ sơ khen thưởng');
+    if (meritsList.length === 0) return alert('Vui lòng thêm ít nhất một hồ sơ vào danh sách');
     
-    const finalData = medalsList.map(m => ({ ...m, LinkedHouseId: selectedHouseId }));
+    const finalData = meritsList.map(m => ({ ...m, LinkedHouseId: selectedHouseId }));
     onSubmit(finalData);
   };
 
@@ -87,8 +87,8 @@ const MedalForm: React.FC<MedalFormProps> = ({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">{isEditing ? 'Sửa thông tin khen thưởng' : 'Thêm hồ sơ khen thưởng kháng chiến'}</h2>
-            <p className="text-xs text-slate-500 italic mt-1">Quản lý danh sách huân/huy chương theo từng địa chỉ số nhà</p>
+            <h2 className="text-xl font-bold text-slate-900">{isEditing ? 'Sửa thông tin Người có công' : 'Thêm hồ sơ Người có công'}</h2>
+            <p className="text-xs text-slate-500 italic mt-1">Quản lý danh sách người có công theo từng địa chỉ số nhà</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={24} /></button>
         </div>
@@ -97,12 +97,12 @@ const MedalForm: React.FC<MedalFormProps> = ({
           {/* Section 1: House Selection */}
           <div className="space-y-4">
             <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Building size={14} className="text-amber-600" /> 1. Chọn số nhà liên kết
+              <Building size={14} className="text-rose-600" /> 1. Chọn số nhà liên kết
             </label>
             
             {!isEditing && (
               <div className="relative">
-                <div className="flex items-center gap-2 px-3 py-2 border rounded-lg focus-within:ring-2 focus-within:ring-amber-500 bg-white shadow-sm transition-all">
+                <div className="flex items-center gap-2 px-3 py-2 border rounded-lg focus-within:ring-2 focus-within:ring-rose-500 bg-white shadow-sm transition-all">
                   <Search size={18} className="text-slate-400" />
                   <input 
                     type="text" 
@@ -119,13 +119,13 @@ const MedalForm: React.FC<MedalFormProps> = ({
                       <button 
                         key={house.id}
                         onClick={() => { setSelectedHouseId(house.id); setHouseSearch(''); }}
-                        className="w-full text-left px-4 py-3 hover:bg-amber-50 flex items-center justify-between group transition-colors"
+                        className="w-full text-left px-4 py-3 hover:bg-rose-50 flex items-center justify-between group transition-colors"
                       >
                         <div>
                           <p className="text-sm font-bold text-slate-800">{house.TenChuHo}</p>
                           <p className="text-[10px] text-slate-500">SN: {house.SoNha} {house.Duong} | Tờ/Thửa: T{house.SoTo}/Th{house.SoThua}</p>
                         </div>
-                        <Plus size={16} className="text-slate-300 group-hover:text-amber-600" />
+                        <Plus size={16} className="text-slate-300 group-hover:text-rose-600" />
                       </button>
                     ))}
                   </div>
@@ -134,13 +134,13 @@ const MedalForm: React.FC<MedalFormProps> = ({
             )}
 
             {selectedHouse ? (
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center">
                     <CheckCircle2 size={24} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Số nhà đã liên kết</p>
+                    <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Số nhà đã liên kết</p>
                     <p className="text-sm font-black text-slate-800">{selectedHouse.SoNha} {selectedHouse.Duong}</p>
                     <p className="text-[11px] text-slate-600">Chủ hộ: {selectedHouse.TenChuHo} | Khu vực: {selectedHouse.KDC}</p>
                   </div>
@@ -153,75 +153,75 @@ const MedalForm: React.FC<MedalFormProps> = ({
               </div>
             ) : (
               <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center bg-slate-50">
-                <p className="text-sm text-slate-400 italic">Vui lòng chọn hồ sơ số nhà để lập danh sách khen thưởng</p>
+                <p className="text-sm text-slate-400 italic">Vui lòng chọn hồ sơ số nhà để lập danh sách người có công</p>
               </div>
             )}
           </div>
 
-          {/* Section 2: Medal Input */}
+          {/* Section 2: Merit Input */}
           {selectedHouseId && (
             <div className="space-y-6 border-t pt-6 animation-fade-in">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Award size={14} className="text-amber-600" /> 2. Nhập thông tin người được khen thưởng
+                <Heart size={14} className="text-rose-600" /> 2. Nhập thông tin người có công
               </label>
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 shadow-inner">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600">Họ và tên người hưởng <span className="text-red-500">*</span></label>
+                    <label className="text-xs font-bold text-slate-600">Họ và tên <span className="text-red-500">*</span></label>
                     <input 
-                      value={currentMedal.HoTen || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, HoTen: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm" 
+                      value={currentMerit.HoTen || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, HoTen: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm" 
                       placeholder="Nhập họ tên..." 
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Quan hệ với chủ hộ</label>
                     <select 
-                      value={currentMedal.QuanHe || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, QuanHe: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                      value={currentMerit.QuanHe || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, QuanHe: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm"
                     >
                       <option value="">-- Chọn quan hệ --</option>
                       {relationshipTypes.map(rel => <option key={rel.id} value={rel.name}>{rel.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600">Loại khen thưởng <span className="text-red-500">*</span></label>
+                    <label className="text-xs font-bold text-slate-600">Loại đối tượng <span className="text-red-500">*</span></label>
                     <select 
-                      value={currentMedal.LoaiDoiTuong || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, LoaiDoiTuong: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm font-bold text-amber-800"
+                      value={currentMerit.LoaiDoiTuong || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, LoaiDoiTuong: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm font-bold text-rose-800"
                     >
-                      <option value="">-- Chọn loại huân/huy chương --</option>
-                      {medalTypes.map(mt => <option key={mt.id} value={mt.name}>{mt.name}</option>)}
+                      <option value="">-- Chọn loại đối tượng --</option>
+                      {meritTypes.map(met => <option key={met.id} value={met.name}>{met.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Số quản lý hồ sơ</label>
                     <input 
-                      value={currentMedal.SoQuanLyHS || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, SoQuanLyHS: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm font-mono" 
-                      placeholder="Số hiệu HS..." 
+                      value={currentMerit.SoQuanLyHS || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, SoQuanLyHS: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm font-mono" 
+                      placeholder="Số hiệu NCC..." 
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Số tiền trợ cấp (VNĐ)</label>
                     <input 
                       type="number"
-                      value={currentMedal.SoTien || 0} 
-                      onChange={e => setCurrentMedal({...currentMedal, SoTien: parseFloat(e.target.value) || 0})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm font-bold text-emerald-600" 
+                      value={currentMerit.SoTien || 0} 
+                      onChange={e => setCurrentMerit({...currentMerit, SoTien: parseFloat(e.target.value) || 0})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm font-bold text-emerald-600" 
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Số điện thoại</label>
                     <input 
-                      value={currentMedal.DienThoai || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, DienThoai: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm" 
+                      value={currentMerit.DienThoai || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, DienThoai: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm" 
                       placeholder="09xx..." 
                     />
                   </div>
@@ -229,19 +229,19 @@ const MedalForm: React.FC<MedalFormProps> = ({
                     <label className="text-xs font-bold text-slate-600">Email</label>
                     <input 
                       type="email"
-                      value={currentMedal.Email || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, Email: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm" 
+                      value={currentMerit.Email || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, Email: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm" 
                       placeholder="example@mail.com" 
                     />
                   </div>
                   <div className="col-span-full space-y-1">
                     <label className="text-xs font-bold text-slate-600">Ghi chú</label>
                     <textarea 
-                      value={currentMedal.GhiChu || ''} 
-                      onChange={e => setCurrentMedal({...currentMedal, GhiChu: e.target.value})} 
-                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500 text-sm h-20 resize-none" 
-                      placeholder="Nhập thông tin bổ sung..." 
+                      value={currentMerit.GhiChu || ''} 
+                      onChange={e => setCurrentMerit({...currentMerit, GhiChu: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-rose-500 text-sm h-20 resize-none" 
+                      placeholder="Thông tin hoàn cảnh, sức khỏe..." 
                     />
                   </div>
                 </div>
@@ -249,7 +249,7 @@ const MedalForm: React.FC<MedalFormProps> = ({
                   <button 
                     type="button" 
                     onClick={handleAddToList}
-                    className="flex items-center gap-2 bg-amber-600 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-amber-700 transition-all shadow-md active:scale-95"
+                    className="flex items-center gap-2 bg-rose-600 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-rose-700 transition-all shadow-md active:scale-95"
                   >
                     <Plus size={16} /> Thêm vào danh sách tạm
                   </button>
@@ -259,25 +259,25 @@ const MedalForm: React.FC<MedalFormProps> = ({
               {/* Temp List Display */}
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <List size={14} className="text-amber-600" /> Danh sách người hưởng ({medalsList.length})
+                  <List size={14} className="text-rose-600" /> Danh sách người hưởng ({meritsList.length})
                 </label>
                 <div className="border rounded-2xl overflow-hidden bg-white shadow-sm">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 border-b">
                       <tr className="text-[10px] font-bold uppercase text-slate-400">
                         <th className="px-4 py-3">Họ và tên</th>
-                        <th className="px-4 py-3">Loại huân/huy chương</th>
+                        <th className="px-4 py-3">Loại đối tượng</th>
                         <th className="px-4 py-3">Số hồ sơ</th>
                         <th className="px-4 py-3 text-right">Số tiền</th>
                         <th className="px-4 py-3 text-right">#</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {medalsList.length > 0 ? (
-                        medalsList.map((m, idx) => (
-                          <tr key={idx} className="hover:bg-amber-50 group transition-colors">
+                      {meritsList.length > 0 ? (
+                        meritsList.map((m, idx) => (
+                          <tr key={idx} className="hover:bg-rose-50 group transition-colors">
                             <td className="px-4 py-3 font-bold text-slate-700">{m.HoTen}</td>
-                            <td className="px-4 py-3 font-semibold text-amber-700">{m.LoaiDoiTuong}</td>
+                            <td className="px-4 py-3 font-semibold text-rose-700">{m.LoaiDoiTuong}</td>
                             <td className="px-4 py-3 font-mono text-slate-500">{m.SoQuanLyHS || '--'}</td>
                             <td className="px-4 py-3 text-right font-black text-emerald-600">{(m.SoTien || 0).toLocaleString()}</td>
                             <td className="px-4 py-3 text-right">
@@ -304,8 +304,8 @@ const MedalForm: React.FC<MedalFormProps> = ({
           <button onClick={onClose} className="px-6 py-2 text-slate-600 font-medium hover:text-slate-800 transition-colors">Hủy</button>
           <button 
             onClick={handleSaveAll}
-            disabled={!selectedHouseId || medalsList.length === 0}
-            className={`px-8 py-2 rounded-xl shadow-lg flex items-center gap-2 transition-all transform active:scale-95 font-bold ${(!selectedHouseId || medalsList.length === 0) ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-700 text-white transform hover:scale-105'}`}
+            disabled={!selectedHouseId || meritsList.length === 0}
+            className={`px-8 py-2 rounded-xl shadow-lg flex items-center gap-2 transition-all transform active:scale-95 font-bold ${(!selectedHouseId || meritsList.length === 0) ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700 text-white transform hover:scale-105'}`}
           >
             <Save size={18} /> {isEditing ? 'Cập nhật' : 'Lưu tất cả hồ sơ'}
           </button>
@@ -315,4 +315,4 @@ const MedalForm: React.FC<MedalFormProps> = ({
   );
 };
 
-export default MedalForm;
+export default MeritForm;
