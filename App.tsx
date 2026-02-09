@@ -3,10 +3,10 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Plus, Map as MapIcon, List, Filter, 
   Trash2, Edit, CheckCircle, AlertCircle,
-  Home, Database, MapPin, Milestone, Building2, Landmark, Info, Layers, Eye, EyeOff, Globe, Users, ShieldAlert, Heart, Wallet
+  Home, Database, MapPin, Milestone, Building2, Landmark, Info, Layers, Eye, EyeOff, Globe, Users, ShieldAlert, Heart, Wallet, Award
 } from 'lucide-react';
-import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralRecord, GeneralStatus, MeritRecord, MeritType } from './types';
-import { INITIAL_DATA, INITIAL_STREETS, INITIAL_NEIGHBORHOODS, INITIAL_PUBLIC_LAND, INITIAL_WARD_BOUNDARY, INITIAL_RELATIONSHIPS, INITIAL_GENERAL_STATUS, INITIAL_MERIT_TYPES } from './constants';
+import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralRecord, GeneralStatus, MeritRecord, MeritType, MedalRecord, MedalType } from './types';
+import { INITIAL_DATA, INITIAL_STREETS, INITIAL_NEIGHBORHOODS, INITIAL_PUBLIC_LAND, INITIAL_WARD_BOUNDARY, INITIAL_RELATIONSHIPS, INITIAL_GENERAL_STATUS, INITIAL_MERIT_TYPES, INITIAL_MEDAL_TYPES } from './constants';
 import HouseForm from './components/HouseForm';
 import MapView from './components/MapView';
 import StreetForm from './components/StreetForm';
@@ -18,8 +18,10 @@ import GeneralForm from './components/GeneralForm';
 import GeneralStatusForm from './components/GeneralStatusForm';
 import MeritForm from './components/MeritForm';
 import MeritTypeForm from './components/MeritTypeForm';
+import MedalForm from './components/MedalForm';
+import MedalTypeForm from './components/MedalTypeForm';
 
-type SidebarTab = 'records' | 'public_land' | 'generals' | 'merits' | 'planning' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types';
+type SidebarTab = 'records' | 'public_land' | 'generals' | 'medals' | 'merits' | 'planning' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types' | 'medal_types';
 
 const App: React.FC = () => {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('records');
@@ -27,11 +29,13 @@ const App: React.FC = () => {
   const [publicLands, setPublicLands] = useState<PublicLandRecord[]>(INITIAL_PUBLIC_LAND);
   const [generals, setGenerals] = useState<GeneralRecord[]>([]);
   const [merits, setMerits] = useState<MeritRecord[]>([]);
+  const [medals, setMedals] = useState<MedalRecord[]>([]);
   const [streets, setStreets] = useState<Street[]>(INITIAL_STREETS);
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>(INITIAL_NEIGHBORHOODS);
   const [relationships, setRelationships] = useState<RelationshipType[]>(INITIAL_RELATIONSHIPS);
   const [generalStatuses, setGeneralStatuses] = useState<GeneralStatus[]>(INITIAL_GENERAL_STATUS);
   const [meritTypes, setMeritTypes] = useState<MeritType[]>(INITIAL_MERIT_TYPES);
+  const [medalTypes, setMedalTypes] = useState<MedalType[]>(INITIAL_MEDAL_TYPES);
   const [wardBoundary, setWardBoundary] = useState<WardBoundary>(INITIAL_WARD_BOUNDARY);
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +52,9 @@ const App: React.FC = () => {
 
   const [isMeritFormOpen, setIsMeritFormOpen] = useState(false);
   const [editingMerit, setEditingMerit] = useState<MeritRecord | undefined>(undefined);
+
+  const [isMedalFormOpen, setIsMedalFormOpen] = useState(false);
+  const [editingMedal, setEditingMedal] = useState<MedalRecord | undefined>(undefined);
   
   const [isStreetFormOpen, setIsStreetFormOpen] = useState(false);
   const [editingStreet, setEditingStreet] = useState<Street | undefined>(undefined);
@@ -63,6 +70,9 @@ const App: React.FC = () => {
 
   const [isMtFormOpen, setIsMtFormOpen] = useState(false);
   const [editingMt, setEditingMt] = useState<MeritType | undefined>(undefined);
+
+  const [isMdtFormOpen, setIsMdtFormOpen] = useState(false);
+  const [editingMdt, setEditingMdt] = useState<MedalType | undefined>(undefined);
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('active');
 
@@ -135,6 +145,20 @@ const App: React.FC = () => {
       return matchSearch && matchFilter;
     });
   }, [merits, searchTerm, activeFilter]);
+
+  const filteredMedals = useMemo(() => {
+    return medals.filter(m => {
+      const matchSearch = (
+        (m.HoTen || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.SoQuanLyHS || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      const matchFilter = activeFilter === 'all' ? true : 
+                          activeFilter === 'active' ? m.Status === 'Active' : 
+                          m.Status === 'Inactive';
+      return matchSearch && matchFilter;
+    });
+  }, [medals, searchTerm, activeFilter]);
 
   // House CRUD
   const handleAddOrEditHouse = (data: Partial<HouseNumberRecord>) => {
@@ -253,6 +277,31 @@ const App: React.FC = () => {
     }
   };
 
+  // Medal CRUD
+  const handleAddOrEditMedal = (dataList: Partial<MedalRecord>[]) => {
+    if (editingMedal) {
+      const data = dataList[0];
+      setMedals(prev => prev.map(m => m.id === editingMedal.id ? { ...m, ...data } as MedalRecord : m));
+    } else {
+      const newRecords = dataList.map(data => ({
+        ...data,
+        id: data.id || Math.random().toString(36).substr(2, 9),
+        CreatedAt: new Date().toISOString(),
+        CreatedBy: 'Admin',
+        Status: 'Active'
+      })) as MedalRecord[];
+      setMedals(prev => [...prev, ...newRecords]);
+    }
+    setIsMedalFormOpen(false);
+    setEditingMedal(undefined);
+  };
+
+  const handleDeleteMedal = (id: string) => {
+    if (window.confirm('Xác nhận ngưng quản lý hồ sơ này?')) {
+      setMedals(prev => prev.map(m => m.id === id ? { ...m, Status: 'Inactive' } as MedalRecord : m));
+    }
+  };
+
   const handleAddOrEditStreet = (data: Partial<Street>) => {
     if (editingStreet) {
       setStreets(prev => prev.map(s => s.id === editingStreet.id ? { ...s, ...data } as Street : s));
@@ -317,6 +366,22 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAddOrEditMdt = (data: Partial<MedalType>) => {
+    if (editingMdt) {
+      setMedalTypes(prev => prev.map(m => m.id === editingMdt.id ? { ...m, ...data } as MedalType : m));
+    } else {
+      setMedalTypes(prev => [...prev, { ...data, id: Math.random().toString(36).substr(2, 9) } as MedalType]);
+    }
+    setIsMdtFormOpen(false);
+    setEditingMdt(undefined);
+  };
+
+  const handleDeleteMdt = (id: string) => {
+    if (window.confirm('Xác nhận xóa loại huân chương này?')) {
+      setMedalTypes(prev => prev.filter(m => m.id !== id));
+    }
+  };
+
   const handleAddOrEditNb = (data: Partial<Neighborhood>) => {
     if (editingNb) {
       setNeighborhoods(prev => prev.map(n => n.id === editingNb.id ? { ...n, ...data } as Neighborhood : n));
@@ -348,7 +413,7 @@ const App: React.FC = () => {
         );
       case 'public_land':
         return (
-          <button onClick={() => { setEditingLand(undefined); setIsLandFormOpen(true); }} className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
+          <button onClick={() => { setEditingLand(undefined); setIsLandFormOpen(true); }} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm đất công
           </button>
         );
@@ -362,6 +427,12 @@ const App: React.FC = () => {
         return (
           <button onClick={() => { setEditingMerit(undefined); setIsMeritFormOpen(true); }} className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm NCC mới
+          </button>
+        );
+      case 'medals':
+        return (
+          <button onClick={() => { setEditingMedal(undefined); setIsMedalFormOpen(true); }} className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
+            <Plus size={18} /> Thêm Huân chương KC
           </button>
         );
       case 'streets':
@@ -392,6 +463,12 @@ const App: React.FC = () => {
         return (
           <button onClick={() => { setEditingMt(undefined); setIsMtFormOpen(true); }} className="flex items-center gap-2 bg-rose-800 hover:bg-rose-900 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm loại đối tượng
+          </button>
+        );
+      case 'medal_types':
+        return (
+          <button onClick={() => { setEditingMdt(undefined); setIsMdtFormOpen(true); }} className="flex items-center gap-2 bg-amber-800 hover:bg-amber-900 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
+            <Plus size={18} /> Thêm loại huân chương
           </button>
         );
       default:
@@ -656,6 +733,64 @@ const App: React.FC = () => {
             </div>
           </div>
         );
+      case 'medals':
+        return (
+          <div className="flex-1 flex flex-col overflow-hidden p-6 gap-6">
+            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 shrink-0">
+              <StatsCard label="Tổng hồ sơ Huân chương" value={medals.length.toString()} icon={<Award className="text-amber-600" />} />
+              <StatsCard label="Đang hưởng trợ cấp" value={medals.filter(m => m.Status === 'Active').length.toString()} icon={<CheckCircle className="text-emerald-600" />} />
+              <StatsCard label="Tổng kinh phí trợ cấp" value={medals.reduce((a, b) => a + (b.SoTien || 0), 0).toLocaleString() + ' VNĐ'} icon={<Wallet className="text-blue-600" />} />
+              <StatsCard label="Đã ngưng/Lưu trữ" value={medals.filter(m => m.Status === 'Inactive').length.toString()} icon={<Trash2 className="text-slate-500" />} />
+            </section>
+            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+              <div className="p-4 border-b flex items-center justify-between bg-slate-50 shrink-0">
+                <div className="flex border rounded-lg overflow-hidden bg-white shadow-sm">
+                  <FilterButton active={activeFilter === 'active'} onClick={() => setActiveFilter('active')} label="Đang quản lý" />
+                  <FilterButton active={activeFilter === 'inactive'} onClick={() => setActiveFilter('inactive')} label="Đã ngưng" />
+                  <FilterButton active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} label="Tất cả" />
+                </div>
+              </div>
+              <div className="flex-1 overflow-auto custom-scrollbar relative">
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead className="sticky top-0 bg-white shadow-sm z-10">
+                    <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
+                      <th className="px-6 py-4">Họ tên người được huân chương</th>
+                      <th className="px-6 py-4">Quan hệ với chủ nhà</th>
+                      <th className="px-6 py-4">Loại huân chương</th>
+                      <th className="px-6 py-4">Số hồ sơ</th>
+                      <th className="px-6 py-4 text-right">Số tiền trợ cấp</th>
+                      <th className="px-6 py-4 text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredMedals.map(medal => (
+                      <tr key={medal.id} className="hover:bg-amber-50/30 transition-colors group">
+                        <td className="px-6 py-4">
+                          <p className="text-sm font-bold text-slate-800">{medal.HoTen}</p>
+                          <p className="text-[10px] text-slate-400">Ghi chú: {medal.GhiChu || '--'}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{medal.QuanHe}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">{medal.LoaiDoiTuong}</span>
+                        </td>
+                        <td className="px-6 py-4 text-xs font-mono text-slate-700">{medal.SoQuanLyHS}</td>
+                        <td className="px-6 py-4 text-right font-black text-emerald-600">{(medal.SoTien || 0).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => { setEditingMedal(medal); setIsMedalFormOpen(true); }} className="p-1.5 hover:bg-amber-600 hover:text-white text-amber-600 rounded-lg transition-colors"><Edit size={14} /></button>
+                            {medal.Status === 'Active' && <button onClick={() => handleDeleteMedal(medal.id)} className="p-1.5 hover:bg-red-600 hover:text-white text-red-600 rounded-lg transition-colors"><Trash2 size={14} /></button>}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
       case 'streets':
         return (
           <div className="flex-1 p-6 flex flex-col gap-6">
@@ -698,6 +833,31 @@ const App: React.FC = () => {
                       <td className="px-6 py-4 text-right">
                         <button onClick={() => { setEditingMt(mt); setIsMtFormOpen(true); }} className="p-1.5 hover:bg-rose-100 text-rose-600 rounded-lg"><Edit size={14} /></button>
                         <button onClick={() => handleDeleteMt(mt.id)} className="p-1.5 hover:bg-red-100 text-red-600 rounded-lg ml-2"><Trash2 size={14} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      case 'medal_types':
+        return (
+          <div className="flex-1 p-6 flex flex-col gap-6">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Award className="text-amber-600" /> Quản lý danh mục Loại huân chương kháng chiến</h2>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 border-b">
+                  <tr className="text-[10px] font-bold uppercase text-slate-400"><th className="px-6 py-4">Mã loại</th><th className="px-6 py-4">Tên loại huân chương/huy chương</th><th className="px-6 py-4 text-right">Thao tác</th></tr>
+                </thead>
+                <tbody className="divide-y">
+                  {medalTypes.map(mt => (
+                    <tr key={mt.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4 font-mono text-xs text-amber-600">{mt.code}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-700">{mt.name}</td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => { setEditingMdt(mt); setIsMdtFormOpen(true); }} className="p-1.5 hover:bg-amber-100 text-amber-600 rounded-lg"><Edit size={14} /></button>
+                        <button onClick={() => handleDeleteMdt(mt.id)} className="p-1.5 hover:bg-red-100 text-red-600 rounded-lg ml-2"><Trash2 size={14} /></button>
                       </td>
                     </tr>
                   ))}
@@ -917,12 +1077,14 @@ const App: React.FC = () => {
           <NavItem icon={<Landmark size={18} />} label="Quản lý Đất công" active={activeSidebarTab === 'public_land'} onClick={() => setActiveSidebarTab('public_land')} />
           <NavItem icon={<ShieldAlert size={18} />} label="Quản lý Tướng lĩnh" active={activeSidebarTab === 'generals'} onClick={() => setActiveSidebarTab('generals')} />
           <NavItem icon={<Heart size={18} />} label="Người có công" active={activeSidebarTab === 'merits'} onClick={() => setActiveSidebarTab('merits')} />
+          <NavItem icon={<Award size={18} />} label="Huân chương KC" active={activeSidebarTab === 'medals'} onClick={() => setActiveSidebarTab('medals')} />
           <NavItem icon={<MapIcon size={18} />} label="Bản đồ" active={activeSidebarTab === 'planning'} onClick={() => setActiveSidebarTab('planning')} />
           <div className="pt-4 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Danh mục hệ thống</div>
           <NavItem icon={<Globe size={18} />} label="Ranh giới Phường" active={activeSidebarTab === 'ward_boundary'} onClick={() => setActiveSidebarTab('ward_boundary')} />
           <NavItem icon={<Milestone size={18} />} label="Danh mục Đường" active={activeSidebarTab === 'streets'} onClick={() => setActiveSidebarTab('streets')} />
           <NavItem icon={<Building2 size={18} />} label="Danh mục Khu phố" active={activeSidebarTab === 'neighborhoods'} onClick={() => setActiveSidebarTab('neighborhoods')} />
           <NavItem icon={<Heart size={18} className="text-rose-400" />} label="Loại đối tượng NCC" active={activeSidebarTab === 'merit_types'} onClick={() => setActiveSidebarTab('merit_types')} />
+          <NavItem icon={<Award size={18} className="text-amber-400" />} label="Loại huân chương" active={activeSidebarTab === 'medal_types'} onClick={() => setActiveSidebarTab('medal_types')} />
           <NavItem icon={<Users size={18} />} label="Quan hệ chủ hộ" active={activeSidebarTab === 'relationships'} onClick={() => setActiveSidebarTab('relationships')} />
           <NavItem icon={<Info size={18} />} label="Tình trạng tướng lĩnh" active={activeSidebarTab === 'general_statuses'} onClick={() => setActiveSidebarTab('general_statuses')} />
         </nav>
@@ -978,6 +1140,17 @@ const App: React.FC = () => {
           meritTypes={meritTypes}
         />
       )}
+      {isMedalFormOpen && (
+        <MedalForm 
+          onClose={() => { setIsMedalFormOpen(false); setEditingMedal(undefined); }} 
+          onSubmit={handleAddOrEditMedal} 
+          initialData={editingMedal} 
+          isEditing={!!editingMedal} 
+          houseRecords={records}
+          relationshipTypes={relationships}
+          medalTypes={medalTypes}
+        />
+      )}
       {isStreetFormOpen && (
         <StreetForm initialData={editingStreet} onClose={() => { setIsStreetFormOpen(false); setEditingStreet(undefined); }} onSubmit={handleAddOrEditStreet} />
       )}
@@ -992,6 +1165,9 @@ const App: React.FC = () => {
       )}
       {isMtFormOpen && (
         <MeritTypeForm initialData={editingMt} onClose={() => { setIsMtFormOpen(false); setEditingMt(undefined); }} onSubmit={handleAddOrEditMt} />
+      )}
+      {isMdtFormOpen && (
+        <MedalTypeForm initialData={editingMdt} onClose={() => { setIsMdtFormOpen(false); setEditingMdt(undefined); }} onSubmit={handleAddOrEditMdt} />
       )}
     </div>
   );
