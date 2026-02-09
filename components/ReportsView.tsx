@@ -7,7 +7,7 @@ import {
 import { 
   BarChart3, Download, Calendar, Filter, Home, 
   Landmark, ShieldAlert, Heart, Award, ShieldCheck, HandHeart,
-  FileSpreadsheet, CheckCircle
+  FileSpreadsheet, CheckCircle, Clock
 } from 'lucide-react';
 
 interface ReportsViewProps {
@@ -27,15 +27,19 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   const [endDate, setEndDate] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Active' | 'Inactive'>('all');
 
+  // Logic lọc mới: Ưu tiên ngày cập nhật cuối cùng
   const filterByDateAndStatus = (list: any[]) => {
     return list.filter(item => {
-      const createdAt = new Date(item.CreatedAt);
+      // Lấy mốc thời gian cuối cùng mà hồ sơ được ghi nhận (Cập nhật hoặc Tạo mới)
+      const lastActivityDate = item.UpdatedAt ? new Date(item.UpdatedAt) : new Date(item.CreatedAt);
+      
       const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
+      // Đặt giờ kết thúc là cuối ngày (23:59:59) để bao gồm cả dữ liệu trong ngày đó
+      const end = endDate ? new Date(new Date(endDate).setHours(23, 59, 59, 999)) : null;
       
       const matchStatus = statusFilter === 'all' || item.Status === statusFilter;
-      const matchStart = !start || createdAt >= start;
-      const matchEnd = !end || createdAt <= end;
+      const matchStart = !start || lastActivityDate >= start;
+      const matchEnd = !end || lastActivityDate <= end;
       
       return matchStatus && matchStart && matchEnd;
     });
@@ -95,7 +99,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
             <BarChart3 className="text-blue-600" size={28} /> Thống kê & Báo cáo tổng hợp
           </h2>
-          <p className="text-sm text-slate-500 font-medium italic">Dữ liệu dàn trải toàn diện trên địa bàn phường</p>
+          <p className="text-sm text-slate-500 font-medium italic">Tiêu chí: Ngày thêm mới hoặc cập nhật dữ liệu cuối cùng</p>
         </div>
         <button 
           onClick={exportToCSV}
@@ -108,25 +112,25 @@ const ReportsView: React.FC<ReportsViewProps> = ({
       {/* Filters */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><Calendar size={12}/> Từ ngày</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><Calendar size={12}/> Từ ngày biến động</label>
           <input 
             type="date" 
             value={startDate} 
             onChange={e => setStartDate(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" 
+            className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" 
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><Calendar size={12}/> Đến ngày</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><Calendar size={12}/> Đến ngày biến động</label>
           <input 
             type="date" 
             value={endDate} 
             onChange={e => setEndDate(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" 
+            className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" 
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><Filter size={12}/> Tình trạng</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-1"><Filter size={12}/> Trạng thái hồ sơ</label>
           <select 
             value={statusFilter} 
             onChange={e => setStatusFilter(e.target.value as any)}
@@ -137,7 +141,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
             <option value="Inactive">Đã ngưng sử dụng</option>
           </select>
         </div>
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
           <button 
             onClick={() => { setStartDate(''); setEndDate(''); setStatusFilter('all'); }}
             className="text-xs font-bold text-slate-400 hover:text-slate-600 underline pb-3"
@@ -147,13 +151,13 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
       </div>
 
-      {/* Summary Stats Grid - NO INTERNAL SCROLL */}
+      {/* Summary Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
         <ReportCard 
           icon={<Home />} 
           label="Tổng số nhà" 
           value={stats.house.total} 
-          subValue={`${stats.house.active} đang hoạt động`}
+          subValue={`${stats.house.active} hồ sơ có tác động`}
           color="blue" 
         />
         <ReportCard 
@@ -167,7 +171,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           icon={<ShieldAlert />} 
           label="Tướng lĩnh" 
           value={stats.general.total} 
-          subValue={`${stats.general.dienTW} diện TW`}
+          subValue={`${stats.general.dienTW} diện TW được ghi nhận`}
           color="indigo" 
         />
         <ReportCard 
@@ -216,24 +220,29 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
       </div>
       
-      {/* Detailed Table Section - NO INTERNAL SCROLL */}
+      {/* Detailed Table Section */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden shrink-0">
-        <div className="p-4 border-b bg-slate-50 flex items-center gap-2">
-          <FileSpreadsheet size={18} className="text-blue-600" />
-          <h3 className="font-bold text-slate-800">Chi tiết theo danh mục diện quản lý</h3>
+        <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet size={18} className="text-blue-600" />
+            <h3 className="font-bold text-slate-800">Chi tiết theo danh mục diện quản lý</h3>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
+            <Clock size={12} /> Căn cứ trên ngày cập nhật cuối cùng
+          </div>
         </div>
         <div className="w-full">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b bg-slate-50/30">
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Phân hệ quản lý</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Tổng hồ sơ</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Hồ sơ phát sinh</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Chi tiết điểm nhấn</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Tổng kinh phí/Diện tích</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              <DetailRow label="Quản lý Số nhà" icon={<Home size={14}/>} count={stats.house.total} detail={`${stats.house.active} hồ sơ đang hiệu lực`} meta="-" color="blue" />
+              <DetailRow label="Quản lý Số nhà" icon={<Home size={14}/>} count={stats.house.total} detail={`${stats.house.active} hồ sơ có biến động`} meta="-" color="blue" />
               <DetailRow label="Thửa đất công" icon={<Landmark size={14}/>} count={stats.land.total} detail="Đất trống & Đang khai thác" meta={`${stats.land.area.toLocaleString()} m2`} color="amber" />
               <DetailRow label="Diện Tướng lĩnh" icon={<ShieldAlert size={14}/>} count={stats.general.total} detail={`${stats.general.dienTW} hồ sơ diện Trung ương`} meta="-" color="indigo" />
               <DetailRow label="Người có công" icon={<Heart size={14}/>} count={stats.merit.total} detail="Ưu đãi & Trợ cấp hàng tháng" meta={`${stats.merit.budget.toLocaleString()} đ`} color="rose" />
@@ -272,7 +281,7 @@ const ReportCard: React.FC<{ icon: React.ReactNode; label: string; value: number
         </div>
       </div>
       <div className="pt-4 border-t border-slate-50 flex items-center justify-between mt-auto">
-        <span className="text-[11px] font-bold text-slate-500">{subValue}</span>
+        <span className="text-[11px] font-bold text-slate-500 italic">{subValue}</span>
       </div>
     </div>
   );

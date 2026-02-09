@@ -27,6 +27,7 @@ import SocialProtectionTypeForm from './components/SocialProtectionTypeForm';
 import HouseLookup from './components/HouseLookup';
 import BankForm from './components/BankForm';
 import ReportsView from './components/ReportsView';
+import RelatedRecordsManager from './components/RelatedRecordsManager';
 
 type SidebarTab = 'records' | 'search_by_house' | 'public_land' | 'generals' | 'medals' | 'merits' | 'policies' | 'social_protections' | 'planning' | 'reports' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types' | 'medal_types' | 'policy_types' | 'social_protection_types' | 'bank_management';
 
@@ -56,6 +57,10 @@ const App: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<HouseNumberRecord | undefined>(undefined);
   
+  // Trạng thái cho Related Manager
+  const [isRelatedManagerOpen, setIsRelatedManagerOpen] = useState(false);
+  const [selectedHouseForRelated, setSelectedHouseForRelated] = useState<HouseNumberRecord | null>(null);
+
   const [isLandFormOpen, setIsLandFormOpen] = useState(false);
   const [editingLand, setEditingLand] = useState<PublicLandRecord | undefined>(undefined);
 
@@ -103,6 +108,13 @@ const App: React.FC = () => {
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('active');
 
+  // Helper to find house by ID
+  const getHouseAddress = (houseId?: string) => {
+    if (!houseId) return '';
+    const house = records.find(h => h.id === houseId);
+    return house ? `${house.SoNha} ${house.Duong}` : '';
+  };
+
   // Trạng thái cho tab Bản đồ
   const [mapLayers, setMapLayers] = useState({
     houses: true,
@@ -130,90 +142,102 @@ const App: React.FC = () => {
 
   const filteredPublicLand = useMemo(() => {
     return publicLands.filter(r => {
+      const address = getHouseAddress(r.LinkedHouseId).toLowerCase();
       const matchSearch = (
         (r.Donviquanl || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (r.Donvisudun || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (r.Phuong || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (r.Thua || '').includes(searchTerm) ||
         (r.To || '').includes(searchTerm) ||
-        (r.Hientrang || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (r.Hientrang || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        address.includes(searchTerm.toLowerCase())
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? r.Status === 'Active' : 
                           r.Status === 'Inactive';
       return matchSearch && matchFilter;
     });
-  }, [publicLands, searchTerm, activeFilter]);
+  }, [publicLands, searchTerm, activeFilter, records]);
 
   const filteredGenerals = useMemo(() => {
     return generals.filter(g => {
+      const address = getHouseAddress(g.LinkedHouseId).toLowerCase();
       const matchSearch = (
         (g.HoTen || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (g.DiaChiThuongTru || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (g.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (g.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        address.includes(searchTerm.toLowerCase())
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? g.Status === 'Active' : 
                           g.Status === 'Inactive';
       return matchSearch && matchFilter;
     });
-  }, [generals, searchTerm, activeFilter]);
+  }, [generals, searchTerm, activeFilter, records]);
 
   const filteredMerits = useMemo(() => {
     return merits.filter(m => {
+      const address = getHouseAddress(m.LinkedHouseId).toLowerCase();
       const matchSearch = (
         (m.HoTen || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (m.SoQuanLyHS || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (m.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (m.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        address.includes(searchTerm.toLowerCase())
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? m.Status === 'Active' : 
                           m.Status === 'Inactive';
       return matchSearch && matchFilter;
     });
-  }, [merits, searchTerm, activeFilter]);
+  }, [merits, searchTerm, activeFilter, records]);
 
   const filteredMedals = useMemo(() => {
     return medals.filter(m => {
+      const address = getHouseAddress(m.LinkedHouseId).toLowerCase();
       const matchSearch = (
         (m.HoTen || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (m.SoQuanLyHS || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (m.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (m.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        address.includes(searchTerm.toLowerCase())
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? m.Status === 'Active' : 
                           m.Status === 'Inactive';
       return matchSearch && matchFilter;
     });
-  }, [medals, searchTerm, activeFilter]);
+  }, [medals, searchTerm, activeFilter, records]);
 
   const filteredPolicies = useMemo(() => {
     return policies.filter(p => {
+      const address = getHouseAddress(p.LinkedHouseId).toLowerCase();
       const matchSearch = (
         (p.HoTen || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (p.SoQuanLyHS || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (p.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        address.includes(searchTerm.toLowerCase())
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? p.Status === 'Active' : 
-                          p.Status === 'Inactive'; // Fix: Change 'r' to 'p' to match callback parameter
+                          p.Status === 'Inactive';
       return matchSearch && matchFilter;
     });
-  }, [policies, searchTerm, activeFilter]);
+  }, [policies, searchTerm, activeFilter, records]);
 
   const filteredSocials = useMemo(() => {
     return socialProtections.filter(s => {
+      const address = getHouseAddress(s.LinkedHouseId).toLowerCase();
       const matchSearch = (
         (s.HoTen || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (s.SoQuanLyHS || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (s.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (s.GhiChu || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        address.includes(searchTerm.toLowerCase())
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? s.Status === 'Active' : 
                           s.Status === 'Inactive';
       return matchSearch && matchFilter;
     });
-  }, [socialProtections, searchTerm, activeFilter]);
+  }, [socialProtections, searchTerm, activeFilter, records]);
 
   const filteredBanks = useMemo(() => {
     return banks.filter(b => 
@@ -235,28 +259,28 @@ const App: React.FC = () => {
         headers = ['Mã HS', 'Chủ hộ', 'CCCD', 'Số nhà', 'Đường', 'Khu phố', 'Số tờ', 'Số thửa', 'Tranh chấp', 'Trạng thái'];
         break;
       case 'public_land':
-        dataToExport = filteredPublicLand.map(l => [l.Bieu, l.Donviquanl, l.Donvisudun, l.To, l.Thua, l.Phuong, l.Dientich, l.Hientrang, l.Status]);
-        headers = ['Biểu', 'Đơn vị QL', 'Đơn vị sử dụng', 'Tờ', 'Thửa', 'Phường', 'Diện tích', 'Hiện trạng', 'Trạng thái'];
+        dataToExport = filteredPublicLand.map(l => [l.Bieu, getHouseAddress(l.LinkedHouseId), l.Donviquanl, l.Donvisudun, l.To, l.Thua, l.Phuong, l.Dientich, l.Hientrang, l.Status]);
+        headers = ['Biểu', 'Địa chỉ liên kết', 'Đơn vị QL', 'Đơn vị sử dụng', 'Tờ', 'Thửa', 'Phường', 'Diện tích', 'Hiện trạng', 'Trạng thái'];
         break;
       case 'generals':
-        dataToExport = filteredGenerals.map(g => [g.HoTen, g.QuanHe, g.Dien, g.TinhTrang, g.NguoiNhanThay, g.HinhThucNhan, g.NganHang, g.SoTaiKhoan]);
-        headers = ['Họ tên', 'Quan hệ chủ hộ', 'Diện', 'Tình trạng', 'Người nhận thay', 'Hình thức nhận', 'Ngân hàng', 'Số tài khoản'];
+        dataToExport = filteredGenerals.map(g => [g.HoTen, getHouseAddress(g.LinkedHouseId), g.QuanHe, g.Dien, g.TinhTrang, g.NguoiNhanThay, g.HinhThucNhan, g.NganHang, g.SoTaiKhoan]);
+        headers = ['Họ tên', 'Địa chỉ số nhà', 'Quan hệ chủ hộ', 'Diện', 'Tình trạng', 'Người nhận thay', 'Hình thức nhận', 'Ngân hàng', 'Số tài khoản'];
         break;
       case 'merits':
-        dataToExport = filteredMerits.map(m => [m.HoTen, m.QuanHe, m.LoaiDoiTuong, m.SoQuanLyHS, m.SoTien, m.NguoiNhanThay, m.HinhThucNhan]);
-        headers = ['Họ tên', 'Quan hệ', 'Loại đối tượng', 'Số hồ sơ', 'Số tiền', 'Người nhận thay', 'Hình thức nhận'];
+        dataToExport = filteredMerits.map(m => [m.HoTen, getHouseAddress(m.LinkedHouseId), m.QuanHe, m.LoaiDoiTuong, m.SoQuanLyHS, m.SoTien, m.NguoiNhanThay, m.HinhThucNhan]);
+        headers = ['Họ tên', 'Địa chỉ số nhà', 'Quan hệ', 'Loại đối tượng', 'Số hồ sơ', 'Số tiền', 'Người nhận thay', 'Hình thức nhận'];
         break;
       case 'medals':
-        dataToExport = filteredMedals.map(m => [m.HoTen, m.QuanHe, m.LoaiDoiTuong, m.SoQuanLyHS, m.SoTien, m.NguoiNhanThay]);
-        headers = ['Họ tên', 'Quan hệ', 'Loại huân chương', 'Số hồ sơ', 'Số tiền', 'Người nhận thay'];
+        dataToExport = filteredMedals.map(m => [m.HoTen, getHouseAddress(m.LinkedHouseId), m.QuanHe, m.LoaiDoiTuong, m.SoQuanLyHS, m.SoTien, m.NguoiNhanThay]);
+        headers = ['Họ tên', 'Địa chỉ số nhà', 'Quan hệ', 'Loại huân chương', 'Số hồ sơ', 'Số tiền', 'Người nhận thay'];
         break;
       case 'policies':
-        dataToExport = filteredPolicies.map(p => [p.HoTen, p.QuanHe, p.LoaiDienChinhSach, p.SoQuanLyHS, p.SoTien, p.TyLeTonThuong]);
-        headers = ['Họ tên', 'Quan hệ', 'Diện CS', 'Số hồ sơ', 'Số tiền', 'Tỷ lệ tổn thương'];
+        dataToExport = filteredPolicies.map(p => [p.HoTen, getHouseAddress(p.LinkedHouseId), p.QuanHe, p.LoaiDienChinhSach, p.SoQuanLyHS, p.SoTien, p.TyLeTonThuong]);
+        headers = ['Họ tên', 'Địa chỉ số nhà', 'Quan hệ', 'Diện CS', 'Số hồ sơ', 'Số tiền', 'Tỷ lệ tổn thương'];
         break;
       case 'social_protections':
-        dataToExport = filteredSocials.map(s => [s.HoTen, s.QuanHe, s.LoaiDien, s.SoQuanLyHS, s.SoTien, s.HinhThucNhan]);
-        headers = ['Họ tên', 'Quan hệ', 'Diện bảo trợ', 'Số hồ sơ', 'Số tiền', 'Hình thức nhận'];
+        dataToExport = filteredSocials.map(s => [s.HoTen, getHouseAddress(s.LinkedHouseId), s.QuanHe, s.LoaiDien, s.SoQuanLyHS, s.SoTien, s.HinhThucNhan]);
+        headers = ['Họ tên', 'Địa chỉ số nhà', 'Quan hệ', 'Diện bảo trợ', 'Số hồ sơ', 'Số tiền', 'Hình thức nhận'];
         break;
       default: return;
     }
@@ -302,6 +326,9 @@ const App: React.FC = () => {
         Status: 'Active'
       };
       setRecords(prev => [...prev, newRecord]);
+      // Tự động mở trình quản lý liên kết sau khi thêm mới
+      setSelectedHouseForRelated(newRecord);
+      setIsRelatedManagerOpen(true);
     }
     setIsFormOpen(false);
     setEditingRecord(undefined);
@@ -310,6 +337,40 @@ const App: React.FC = () => {
   const handleDeleteHouse = (id: string) => {
     if (window.confirm('Xác nhận ngưng sử dụng số nhà này?')) {
       setRecords(prev => prev.map(r => r.id === id ? { ...r, Status: 'Inactive' } as HouseNumberRecord : r));
+    }
+  };
+
+  // Logic Manager
+  const handleAddRelated = (type: string) => {
+    if (!selectedHouseForRelated) return;
+    const initialData = { LinkedHouseId: selectedHouseForRelated.id };
+    
+    switch(type) {
+      case 'general': setEditingGeneral(undefined); setIsGeneralFormOpen(true); break;
+      case 'merit': setEditingMerit(undefined); setIsMeritFormOpen(true); break;
+      case 'medal': setEditingMedal(undefined); setIsMedalFormOpen(true); break;
+      case 'policy': setEditingPolicy(undefined); setIsPolicyFormOpen(true); break;
+      case 'social': setEditingSocial(undefined); setIsSocialFormOpen(true); break;
+    }
+  };
+
+  const handleEditRelated = (type: string, record: any) => {
+    switch(type) {
+      case 'general': setEditingGeneral(record); setIsGeneralFormOpen(true); break;
+      case 'merit': setEditingMerit(record); setIsMeritFormOpen(true); break;
+      case 'medal': setEditingMedal(record); setIsMedalFormOpen(true); break;
+      case 'policy': setEditingPolicy(record); setIsPolicyFormOpen(true); break;
+      case 'social': setEditingSocial(record); setIsSocialFormOpen(true); break;
+    }
+  };
+
+  const handleDeleteRelated = (type: string, id: string) => {
+    switch(type) {
+      case 'general': handleDeleteGeneral(id); break;
+      case 'merit': handleDeleteMerit(id); break;
+      case 'medal': handleDeleteMedal(id); break;
+      case 'policy': handleDeletePolicy(id); break;
+      case 'social': handleDeleteSocial(id); break;
     }
   };
 
@@ -358,7 +419,7 @@ const App: React.FC = () => {
   const handleAddOrEditGeneral = (dataList: Partial<GeneralRecord>[]) => {
     if (editingGeneral) {
       const data = dataList[0];
-      setGenerals(prev => prev.map(g => g.id === editingGeneral.id ? { ...g, ...data } as GeneralRecord : g));
+      setGenerals(prev => prev.map(g => g.id === editingGeneral.id ? { ...g, ...data, UpdatedAt: new Date().toISOString() } as GeneralRecord : g));
     } else {
       const newRecords = dataList.map(data => ({
         ...data,
@@ -375,7 +436,7 @@ const App: React.FC = () => {
 
   const handleDeleteGeneral = (id: string) => {
     if (window.confirm('Xác nhận ngưng quản lý tướng lĩnh này?')) {
-      setGenerals(prev => prev.map(g => g.id === id ? { ...g, Status: 'Inactive' } as GeneralRecord : g));
+      setGenerals(prev => prev.map(g => g.id === id ? { ...g, Status: 'Inactive', UpdatedAt: new Date().toISOString() } as GeneralRecord : g));
     }
   };
 
@@ -383,7 +444,7 @@ const App: React.FC = () => {
   const handleAddOrEditMerit = (dataList: Partial<MeritRecord>[]) => {
     if (editingMerit) {
       const data = dataList[0];
-      setMerits(prev => prev.map(m => m.id === editingMerit.id ? { ...m, ...data } as MeritRecord : m));
+      setMerits(prev => prev.map(m => m.id === editingMerit.id ? { ...m, ...data, UpdatedAt: new Date().toISOString() } as MeritRecord : m));
     } else {
       const newRecords = dataList.map(data => ({
         ...data,
@@ -400,7 +461,7 @@ const App: React.FC = () => {
 
   const handleDeleteMerit = (id: string) => {
     if (window.confirm('Xác nhận ngưng quản lý hồ sơ này?')) {
-      setMerits(prev => prev.map(m => m.id === id ? { ...m, Status: 'Inactive' } as MeritRecord : m));
+      setMerits(prev => prev.map(m => m.id === id ? { ...m, Status: 'Inactive', UpdatedAt: new Date().toISOString() } as MeritRecord : m));
     }
   };
 
@@ -408,7 +469,7 @@ const App: React.FC = () => {
   const handleAddOrEditMedal = (dataList: Partial<MedalRecord>[]) => {
     if (editingMedal) {
       const data = dataList[0];
-      setMedals(prev => prev.map(m => m.id === editingMedal.id ? { ...m, ...data } as MedalRecord : m));
+      setMedals(prev => prev.map(m => m.id === editingMedal.id ? { ...m, ...data, UpdatedAt: new Date().toISOString() } as MedalRecord : m));
     } else {
       const newRecords = dataList.map(data => ({
         ...data,
@@ -425,7 +486,7 @@ const App: React.FC = () => {
 
   const handleDeleteMedal = (id: string) => {
     if (window.confirm('Xác nhận ngưng quản lý hồ sơ này?')) {
-      setMedals(prev => prev.map(m => m.id === id ? { ...m, Status: 'Inactive' } as MedalRecord : m));
+      setMedals(prev => prev.map(m => m.id === id ? { ...m, Status: 'Inactive', UpdatedAt: new Date().toISOString() } as MedalRecord : m));
     }
   };
 
@@ -433,7 +494,7 @@ const App: React.FC = () => {
   const handleAddOrEditPolicy = (dataList: Partial<PolicyRecord>[]) => {
     if (editingPolicy) {
       const data = dataList[0];
-      setPolicies(prev => prev.map(p => p.id === editingPolicy.id ? { ...p, ...data } as PolicyRecord : p));
+      setPolicies(prev => prev.map(p => p.id === editingPolicy.id ? { ...p, ...data, UpdatedAt: new Date().toISOString() } as PolicyRecord : p));
     } else {
       const newRecords = dataList.map(data => ({
         ...data,
@@ -450,7 +511,7 @@ const App: React.FC = () => {
 
   const handleDeletePolicy = (id: string) => {
     if (window.confirm('Xác nhận ngưng quản lý hồ sơ chính sách này?')) {
-      setPolicies(prev => prev.map(p => p.id === id ? { ...p, Status: 'Inactive' } as PolicyRecord : p));
+      setPolicies(prev => prev.map(p => p.id === id ? { ...p, Status: 'Inactive', UpdatedAt: new Date().toISOString() } as PolicyRecord : p));
     }
   };
 
@@ -458,7 +519,7 @@ const App: React.FC = () => {
   const handleAddOrEditSocial = (dataList: Partial<SocialProtectionRecord>[]) => {
     if (editingSocial) {
       const data = dataList[0];
-      setSocialProtections(prev => prev.map(s => s.id === editingSocial.id ? { ...s, ...data } as SocialProtectionRecord : s));
+      setSocialProtections(prev => prev.map(s => s.id === editingSocial.id ? { ...s, ...data, UpdatedAt: new Date().toISOString() } as SocialProtectionRecord : s));
     } else {
       const newRecords = dataList.map(data => ({
         ...data,
@@ -475,7 +536,7 @@ const App: React.FC = () => {
 
   const handleDeleteSocial = (id: string) => {
     if (window.confirm('Xác nhận ngưng quản lý hồ sơ bảo trợ này?')) {
-      setSocialProtections(prev => prev.map(s => s.id === id ? { ...s, Status: 'Inactive' } as SocialProtectionRecord : s));
+      setSocialProtections(prev => prev.map(s => s.id === id ? { ...s, Status: 'Inactive', UpdatedAt: new Date().toISOString() } as SocialProtectionRecord : s));
     }
   };
 
@@ -776,8 +837,15 @@ const App: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold border border-slate-200">T{record.SoTo}-Th{record.SoThua}</span></td>
                           <td className="px-6 py-4">{record.TranhChap ? <span className="text-[10px] text-orange-600 font-bold bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full">Tranh chấp</span> : <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">Ổn định</span>}</td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button onClick={() => { setEditingRecord(record); setIsFormOpen(true); }} className="p-1.5 hover:bg-blue-600 hover:text-white text-blue-600 rounded-lg transition-colors"><Edit size={14} /></button>
+                            <div className="flex items-center justify-end gap-2 text-slate-400">
+                              <button 
+                                onClick={() => { setSelectedHouseForRelated(record); setIsRelatedManagerOpen(true); }} 
+                                className="p-1.5 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors"
+                                title="Quản lý đối tượng liên kết"
+                              >
+                                <Users size={16} />
+                              </button>
+                              <button onClick={() => { setEditingRecord(record); setIsFormOpen(true); }} className="p-1.5 hover:bg-blue-600 hover:text-white rounded-lg transition-colors"><Edit size={14} /></button>
                               {record.Status === 'Active' && <button onClick={() => handleDeleteHouse(record.id)} className="p-1.5 hover:bg-red-600 hover:text-white text-red-600 rounded-lg transition-colors"><Trash2 size={14} /></button>}
                             </div>
                           </td>
@@ -829,7 +897,7 @@ const App: React.FC = () => {
                   <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead className="sticky top-0 bg-white shadow-sm z-10">
                       <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
-                        <th className="px-6 py-4">Vị trí (Tờ/Thửa/Phường)</th>
+                        <th className="px-6 py-4">Vị trí & Số nhà</th>
                         <th className="px-6 py-4">Đơn vị Quản lý / Sử dụng</th>
                         <th className="px-6 py-4">Diện tích (m²)</th>
                         <th className="px-6 py-4">Hiện trạng</th>
@@ -841,7 +909,7 @@ const App: React.FC = () => {
                         <tr key={land.id} className="hover:bg-amber-50/30 transition-colors group">
                           <td className="px-6 py-4">
                             <p className="text-sm font-bold text-slate-800">T{land.To} - Th{land.Thua}</p>
-                            <p className="text-[10px] text-slate-400 uppercase font-medium">{land.Phuong}</p>
+                            <p className="text-[10px] text-blue-600 font-bold uppercase">{getHouseAddress(land.LinkedHouseId) || land.Phuong}</p>
                           </td>
                           <td className="px-6 py-4">
                             <p className="text-sm font-semibold text-slate-700">{land.Donviquanl}</p>
@@ -925,7 +993,7 @@ const App: React.FC = () => {
           <div className="flex-1 flex flex-col overflow-hidden p-6 gap-6">
             <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 shrink-0">
               <StatsCard label="Tổng hồ sơ tướng lĩnh" value={generals.length.toString()} icon={<ShieldAlert className="text-indigo-600" />} />
-              <StatsCard label="Diện TW" value={generals.filter(g => g.Dien === 'TW').length.toString()} icon={<Globe className="text-blue-600" />} />
+              <StatsCard label="Diện TW" value={generals.filter(g => g.Dien === 'TW').length.toString()} icon={<Globe size={14} className="text-blue-600" />} />
               <StatsCard label="Diện Thành ủy" value={generals.filter(g => g.Dien === 'Thành ủy').length.toString()} icon={<Building2 className="text-emerald-600" />} />
               <StatsCard label="Đã mất" value={generals.filter(g => g.TinhTrang === 'Đã mất').length.toString()} icon={<Trash2 className="text-slate-500" />} />
             </section>
@@ -941,11 +1009,11 @@ const App: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead className="sticky top-0 bg-white shadow-sm z-10">
                     <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
-                      <th className="px-6 py-4">Tướng lĩnh</th>
+                      <th className="px-6 py-4">Tướng lĩnh & Địa chỉ</th>
                       <th className="px-6 py-4">Quan hệ với chủ hộ</th>
                       <th className="px-6 py-4">Diện</th>
                       <th className="px-6 py-4">Tình trạng</th>
-                      <th className="px-6 py-4">Người nhận thay</th>
+                      <th className="px-6 py-4 text-center">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
                   </thead>
@@ -954,7 +1022,7 @@ const App: React.FC = () => {
                       <tr key={general.id} className="hover:bg-indigo-50/30 transition-colors group">
                         <td className="px-6 py-4">
                           <p className="text-sm font-bold text-slate-800">{general.HoTen}</p>
-                          <p className="text-[10px] text-slate-400">Địa chỉ: {general.DiaChiThuongTru || 'Chưa cập nhật'}</p>
+                          <p className="text-[10px] text-blue-600 font-bold uppercase">Số nhà: {getHouseAddress(general.LinkedHouseId) || 'Chưa liên kết'}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{general.QuanHe}</span>
@@ -1001,10 +1069,10 @@ const App: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead className="sticky top-0 bg-white shadow-sm z-10">
                     <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
-                      <th className="px-6 py-4">Họ và tên đối tượng</th>
+                      <th className="px-6 py-4">Đối tượng & Địa chỉ</th>
                       <th className="px-6 py-4">Quan hệ với chủ nhà</th>
                       <th className="px-6 py-4">Loại đối tượng</th>
-                      <th className="px-6 py-4">Người nhận thay</th>
+                      <th className="px-6 py-4 text-center">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Số tiền trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -1014,7 +1082,7 @@ const App: React.FC = () => {
                       <tr key={merit.id} className="hover:bg-rose-50/30 transition-colors group">
                         <td className="px-6 py-4">
                           <p className="text-sm font-bold text-slate-800">{merit.HoTen}</p>
-                          <p className="text-[10px] text-slate-400">Ghi chú: {merit.GhiChu || '--'}</p>
+                          <p className="text-[10px] text-blue-600 font-bold uppercase">Số nhà: {getHouseAddress(merit.LinkedHouseId) || 'Chưa liên kết'}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{merit.QuanHe}</span>
@@ -1061,10 +1129,10 @@ const App: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead className="sticky top-0 bg-white shadow-sm z-10">
                     <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
-                      <th className="px-6 py-4">Họ tên người nhận</th>
+                      <th className="px-6 py-4">Họ tên & Địa chỉ</th>
                       <th className="px-6 py-4">Quan hệ với chủ nhà</th>
                       <th className="px-6 py-4">Loại huân chương</th>
-                      <th className="px-6 py-4">Người nhận thay</th>
+                      <th className="px-6 py-4 text-center">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Số tiền trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -1074,7 +1142,7 @@ const App: React.FC = () => {
                       <tr key={medal.id} className="hover:bg-amber-50/30 transition-colors group">
                         <td className="px-6 py-4">
                           <p className="text-sm font-bold text-slate-800">{medal.HoTen}</p>
-                          <p className="text-[10px] text-slate-400">Ghi chú: {medal.GhiChu || '--'}</p>
+                          <p className="text-[10px] text-blue-600 font-bold uppercase">Số nhà: {getHouseAddress(medal.LinkedHouseId) || 'Chưa liên kết'}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{medal.QuanHe}</span>
@@ -1121,7 +1189,7 @@ const App: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead className="sticky top-0 bg-white shadow-sm z-10">
                     <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
-                      <th className="px-6 py-4">Đối tượng chính sách</th>
+                      <th className="px-6 py-4">Đối tượng & Địa chỉ</th>
                       <th className="px-6 py-4">Diện chính sách</th>
                       <th className="px-6 py-4 text-center">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Số hồ sơ / Tiền trợ cấp</th>
@@ -1133,7 +1201,7 @@ const App: React.FC = () => {
                       <tr key={policy.id} className="hover:bg-indigo-50/30 transition-colors group">
                         <td className="px-6 py-4">
                           <p className="text-sm font-bold text-slate-800">{policy.HoTen}</p>
-                          <p className="text-[10px] text-slate-400">Quan hệ: {policy.QuanHe || '--'}</p>
+                          <p className="text-[10px] text-blue-600 font-bold uppercase">Số nhà: {getHouseAddress(policy.LinkedHouseId) || 'Chưa liên kết'}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">{policy.LoaiDienChinhSach}</span>
@@ -1180,10 +1248,10 @@ const App: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead className="sticky top-0 bg-white shadow-sm z-10">
                     <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
-                      <th className="px-6 py-4">Đối tượng hưởng BTXH</th>
+                      <th className="px-6 py-4">Đối tượng & Địa chỉ</th>
                       <th className="px-6 py-4">Diện bảo trợ</th>
                       <th className="px-6 py-4">Quan hệ với chủ nhà</th>
-                      <th className="px-6 py-4">Người nhận thay</th>
+                      <th className="px-6 py-4 text-center">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Mức trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -1193,7 +1261,7 @@ const App: React.FC = () => {
                       <tr key={social.id} className="hover:bg-emerald-50/30 transition-colors group">
                         <td className="px-6 py-4">
                           <p className="text-sm font-bold text-slate-800">{social.HoTen}</p>
-                          <p className="text-[10px] text-slate-400 italic">{social.GhiChu || '--'}</p>
+                          <p className="text-[10px] text-blue-600 font-bold uppercase">Số nhà: {getHouseAddress(social.LinkedHouseId) || 'Chưa liên kết'}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">{social.LoaiDien}</span>
@@ -1480,7 +1548,7 @@ const App: React.FC = () => {
         <header className="h-16 bg-white border-b flex items-center justify-between px-6 shrink-0 z-20 shadow-sm">
           <div className="flex items-center gap-3 bg-slate-100 px-4 py-1.5 rounded-xl w-72 max-md:hidden border">
             <Search size={18} className="text-slate-400" />
-            <input type="text" placeholder="Tìm kiếm nhanh..." className="bg-transparent border-none outline-none text-sm w-full font-medium" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <input type="text" placeholder="Tìm tên chủ hộ, số nhà, đường..." className="bg-transparent border-none outline-none text-sm w-full font-medium" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           <div className="flex items-center gap-3 ml-auto">
             {renderHeaderButton()}
@@ -1501,6 +1569,23 @@ const App: React.FC = () => {
           relationshipTypes={relationships}
         />
       )}
+
+      {/* Trình quản lý đối tượng liên kết */}
+      {isRelatedManagerOpen && selectedHouseForRelated && (
+        <RelatedRecordsManager 
+          house={selectedHouseForRelated}
+          generals={generals.filter(g => g.LinkedHouseId === selectedHouseForRelated.id && g.Status === 'Active')}
+          merits={merits.filter(m => m.LinkedHouseId === selectedHouseForRelated.id && m.Status === 'Active')}
+          medals={medals.filter(m => m.LinkedHouseId === selectedHouseForRelated.id && m.Status === 'Active')}
+          policies={policies.filter(p => p.LinkedHouseId === selectedHouseForRelated.id && p.Status === 'Active')}
+          socialProtections={socialProtections.filter(s => s.LinkedHouseId === selectedHouseForRelated.id && s.Status === 'Active')}
+          onClose={() => { setIsRelatedManagerOpen(false); setSelectedHouseForRelated(null); }}
+          onAdd={handleAddRelated}
+          onEdit={handleEditRelated}
+          onDelete={handleDeleteRelated}
+        />
+      )}
+
       {isLandFormOpen && (
         <PublicLandForm onClose={() => { setIsLandFormOpen(false); setEditingLand(undefined); }} onSubmit={handleAddOrEditLand} initialData={editingLand} isEditing={!!editingLand} houseRecords={records} />
       )}
@@ -1508,7 +1593,7 @@ const App: React.FC = () => {
         <GeneralForm 
           onClose={() => { setIsGeneralFormOpen(false); setEditingGeneral(undefined); }} 
           onSubmit={handleAddOrEditGeneral} 
-          initialData={editingGeneral} 
+          initialData={editingGeneral || (selectedHouseForRelated ? { LinkedHouseId: selectedHouseForRelated.id } : undefined)} 
           isEditing={!!editingGeneral} 
           houseRecords={records}
           relationshipTypes={relationships}
@@ -1520,7 +1605,7 @@ const App: React.FC = () => {
         <MeritForm 
           onClose={() => { setIsMeritFormOpen(false); setEditingMerit(undefined); }} 
           onSubmit={handleAddOrEditMerit} 
-          initialData={editingMerit} 
+          initialData={editingMerit || (selectedHouseForRelated ? { LinkedHouseId: selectedHouseForRelated.id } : undefined)} 
           isEditing={!!editingMerit} 
           houseRecords={records}
           relationshipTypes={relationships}
@@ -1532,7 +1617,7 @@ const App: React.FC = () => {
         <MedalForm 
           onClose={() => { setIsMedalFormOpen(false); setEditingMedal(undefined); }} 
           onSubmit={handleAddOrEditMedal} 
-          initialData={editingMedal} 
+          initialData={editingMedal || (selectedHouseForRelated ? { LinkedHouseId: selectedHouseForRelated.id } : undefined)} 
           isEditing={!!editingMedal} 
           houseRecords={records}
           relationshipTypes={relationships}
@@ -1544,7 +1629,7 @@ const App: React.FC = () => {
         <PolicyForm 
           onClose={() => { setIsPolicyFormOpen(false); setEditingPolicy(undefined); }} 
           onSubmit={handleAddOrEditPolicy} 
-          initialData={editingPolicy} 
+          initialData={editingPolicy || (selectedHouseForRelated ? { LinkedHouseId: selectedHouseForRelated.id } : undefined)} 
           isEditing={!!editingPolicy} 
           houseRecords={records}
           relationshipTypes={relationships}
@@ -1556,7 +1641,7 @@ const App: React.FC = () => {
         <SocialProtectionForm 
           onClose={() => { setIsSocialFormOpen(false); setEditingSocial(undefined); }} 
           onSubmit={handleAddOrEditSocial} 
-          initialData={editingSocial} 
+          initialData={editingSocial || (selectedHouseForRelated ? { LinkedHouseId: selectedHouseForRelated.id } : undefined)} 
           isEditing={!!editingSocial} 
           houseRecords={records}
           relationshipTypes={relationships}
