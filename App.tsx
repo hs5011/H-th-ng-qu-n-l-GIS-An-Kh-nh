@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Plus, Map as MapIcon, List, Filter, 
   Trash2, Edit, CheckCircle, AlertCircle,
-  Home, Database, MapPin, Milestone, Building2, Landmark, Info, Layers, Eye, EyeOff, Globe, Users, ShieldAlert, Heart, Wallet, Award, ShieldCheck, Scale, HandHeart, BarChart3
+  Home, Database, MapPin, Milestone, Building2, Landmark, Info, Layers, Eye, EyeOff, Globe, Users, ShieldAlert, Heart, Wallet, Award, ShieldCheck, Scale, HandHeart, BarChart3, FileSpreadsheet, Download
 } from 'lucide-react';
 import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralRecord, GeneralStatus, MeritRecord, MeritType, MedalRecord, MedalType, PolicyRecord, PolicyType, SocialProtectionRecord, SocialProtectionType, Bank } from './types';
 import { INITIAL_DATA, INITIAL_STREETS, INITIAL_NEIGHBORHOODS, INITIAL_PUBLIC_LAND, INITIAL_WARD_BOUNDARY, INITIAL_RELATIONSHIPS, INITIAL_GENERAL_STATUS, INITIAL_MERIT_TYPES, INITIAL_MEDAL_TYPES, INITIAL_POLICY_TYPES, INITIAL_SOCIAL_PROTECTION_TYPES, INITIAL_BANKS } from './constants';
@@ -196,7 +196,7 @@ const App: React.FC = () => {
       );
       const matchFilter = activeFilter === 'all' ? true : 
                           activeFilter === 'active' ? p.Status === 'Active' : 
-                          p.Status === 'Inactive';
+                          p.Status === 'Inactive'; // Fix: Change 'r' to 'p' to match callback parameter
       return matchSearch && matchFilter;
     });
   }, [policies, searchTerm, activeFilter]);
@@ -222,6 +222,70 @@ const App: React.FC = () => {
       b.code.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [banks, searchTerm]);
+
+  // Excel Export Utility
+  const handleExportExcel = (tab: SidebarTab) => {
+    let dataToExport: any[] = [];
+    let headers: string[] = [];
+    let fileName = `Xuat_Du_Lieu_${tab}_${new Date().toISOString().slice(0, 10)}.csv`;
+
+    switch(tab) {
+      case 'records':
+        dataToExport = filteredRecords.map(r => [r.MaSoHS, r.TenChuHo, r.SoCCCD, r.SoNha, r.Duong, r.KDC, r.SoTo, r.SoThua, r.TranhChap ? 'Có' : 'Không', r.Status]);
+        headers = ['Mã HS', 'Chủ hộ', 'CCCD', 'Số nhà', 'Đường', 'Khu phố', 'Số tờ', 'Số thửa', 'Tranh chấp', 'Trạng thái'];
+        break;
+      case 'public_land':
+        dataToExport = filteredPublicLand.map(l => [l.Bieu, l.Donviquanl, l.Donvisudun, l.To, l.Thua, l.Phuong, l.Dientich, l.Hientrang, l.Status]);
+        headers = ['Biểu', 'Đơn vị QL', 'Đơn vị sử dụng', 'Tờ', 'Thửa', 'Phường', 'Diện tích', 'Hiện trạng', 'Trạng thái'];
+        break;
+      case 'generals':
+        dataToExport = filteredGenerals.map(g => [g.HoTen, g.QuanHe, g.Dien, g.TinhTrang, g.NguoiNhanThay, g.HinhThucNhan, g.NganHang, g.SoTaiKhoan]);
+        headers = ['Họ tên', 'Quan hệ chủ hộ', 'Diện', 'Tình trạng', 'Người nhận thay', 'Hình thức nhận', 'Ngân hàng', 'Số tài khoản'];
+        break;
+      case 'merits':
+        dataToExport = filteredMerits.map(m => [m.HoTen, m.QuanHe, m.LoaiDoiTuong, m.SoQuanLyHS, m.SoTien, m.NguoiNhanThay, m.HinhThucNhan]);
+        headers = ['Họ tên', 'Quan hệ', 'Loại đối tượng', 'Số hồ sơ', 'Số tiền', 'Người nhận thay', 'Hình thức nhận'];
+        break;
+      case 'medals':
+        dataToExport = filteredMedals.map(m => [m.HoTen, m.QuanHe, m.LoaiDoiTuong, m.SoQuanLyHS, m.SoTien, m.NguoiNhanThay]);
+        headers = ['Họ tên', 'Quan hệ', 'Loại huân chương', 'Số hồ sơ', 'Số tiền', 'Người nhận thay'];
+        break;
+      case 'policies':
+        dataToExport = filteredPolicies.map(p => [p.HoTen, p.QuanHe, p.LoaiDienChinhSach, p.SoQuanLyHS, p.SoTien, p.TyLeTonThuong]);
+        headers = ['Họ tên', 'Quan hệ', 'Diện CS', 'Số hồ sơ', 'Số tiền', 'Tỷ lệ tổn thương'];
+        break;
+      case 'social_protections':
+        dataToExport = filteredSocials.map(s => [s.HoTen, s.QuanHe, s.LoaiDien, s.SoQuanLyHS, s.SoTien, s.HinhThucNhan]);
+        headers = ['Họ tên', 'Quan hệ', 'Diện bảo trợ', 'Số hồ sơ', 'Số tiền', 'Hình thức nhận'];
+        break;
+      default: return;
+    }
+
+    if (dataToExport.length === 0) {
+      alert('Không có dữ liệu để xuất theo bộ lọc hiện tại');
+      return;
+    }
+
+    let csvContent = "\uFEFF"; // UTF-8 BOM
+    csvContent += headers.join(",") + "\n";
+    dataToExport.forEach(row => {
+      const sanitizedRow = row.map((val: any) => {
+        const s = String(val || '');
+        return s.includes(',') ? `"${s}"` : s;
+      });
+      csvContent += sanitizedRow.join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // House CRUD
   const handleAddOrEditHouse = (data: Partial<HouseNumberRecord>) => {
@@ -565,106 +629,100 @@ const App: React.FC = () => {
   };
 
   const renderHeaderButton = () => {
-    switch(activeSidebarTab) {
-      case 'records':
-        return (
+    const showExport = ['records', 'public_land', 'generals', 'merits', 'medals', 'policies', 'social_protections'].includes(activeSidebarTab);
+    
+    return (
+      <div className="flex items-center gap-2">
+        {showExport && (
+          <button 
+            onClick={() => handleExportExcel(activeSidebarTab)}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all active:scale-95"
+          >
+            <FileSpreadsheet size={18} /> Xuất Excel
+          </button>
+        )}
+        {activeSidebarTab === 'records' && (
           <button onClick={() => { setEditingRecord(undefined); setIsFormOpen(true); }} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm số nhà
           </button>
-        );
-      case 'public_land':
-        return (
+        )}
+        {activeSidebarTab === 'public_land' && (
           <button onClick={() => { setEditingLand(undefined); setIsLandFormOpen(true); }} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm đất công
           </button>
-        );
-      case 'generals':
-        return (
+        )}
+        {activeSidebarTab === 'generals' && (
           <button onClick={() => { setEditingGeneral(undefined); setIsGeneralFormOpen(true); }} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm tướng lĩnh
           </button>
-        );
-      case 'merits':
-        return (
+        )}
+        {activeSidebarTab === 'merits' && (
           <button onClick={() => { setEditingMerit(undefined); setIsMeritFormOpen(true); }} className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm NCC mới
           </button>
-        );
-      case 'medals':
-        return (
+        )}
+        {activeSidebarTab === 'medals' && (
           <button onClick={() => { setEditingMedal(undefined); setIsMedalFormOpen(true); }} className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm Huân chương KC
           </button>
-        );
-      case 'policies':
-        return (
+        )}
+        {activeSidebarTab === 'policies' && (
           <button onClick={() => { setEditingPolicy(undefined); setIsPolicyFormOpen(true); }} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm Hồ sơ chính sách
           </button>
-        );
-      case 'social_protections':
-        return (
+        )}
+        {activeSidebarTab === 'social_protections' && (
           <button onClick={() => { setEditingSocial(undefined); setIsSocialFormOpen(true); }} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm hồ sơ bảo trợ
           </button>
-        );
-      case 'bank_management':
-        return (
+        )}
+        {activeSidebarTab === 'bank_management' && (
           <button onClick={() => { setEditingBank(undefined); setIsBankFormOpen(true); }} className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm ngân hàng
           </button>
-        );
-      case 'streets':
-        return (
+        )}
+        {activeSidebarTab === 'streets' && (
           <button onClick={() => { setEditingStreet(undefined); setIsStreetFormOpen(true); }} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm đường mới
           </button>
-        );
-      case 'relationships':
-        return (
+        )}
+        {activeSidebarTab === 'relationships' && (
           <button onClick={() => { setEditingRel(undefined); setIsRelFormOpen(true); }} className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm loại quan hệ
           </button>
-        );
-      case 'neighborhoods':
-        return (
+        )}
+        {activeSidebarTab === 'neighborhoods' && (
           <button onClick={() => { setEditingNb(undefined); setIsNbFormOpen(true); }} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm khu phố mới
           </button>
-        );
-      case 'general_statuses':
-        return (
+        )}
+        {activeSidebarTab === 'general_statuses' && (
           <button onClick={() => { setEditingGs(undefined); setIsGsFormOpen(true); }} className="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm tình trạng
           </button>
-        );
-      case 'merit_types':
-        return (
+        )}
+        {activeSidebarTab === 'merit_types' && (
           <button onClick={() => { setEditingMt(undefined); setIsMtFormOpen(true); }} className="flex items-center gap-2 bg-rose-800 hover:bg-rose-900 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm loại đối tượng
           </button>
-        );
-      case 'medal_types':
-        return (
+        )}
+        {activeSidebarTab === 'medal_types' && (
           <button onClick={() => { setEditingMdt(undefined); setIsMdtFormOpen(true); }} className="flex items-center gap-2 bg-amber-800 hover:bg-amber-900 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm loại huân chương
           </button>
-        );
-      case 'policy_types':
-        return (
+        )}
+        {activeSidebarTab === 'policy_types' && (
           <button onClick={() => { setEditingPt(undefined); setIsPtFormOpen(true); }} className="flex items-center gap-2 bg-indigo-800 hover:bg-indigo-900 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm loại diện CS
           </button>
-        );
-      case 'social_protection_types':
-        return (
+        )}
+        {activeSidebarTab === 'social_protection_types' && (
           <button onClick={() => { setEditingSpt(undefined); setIsSptFormOpen(true); }} className="flex items-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-xl font-semibold shadow-md transition-all">
             <Plus size={18} /> Thêm loại diện BT
           </button>
-        );
-      default:
-        return null;
-    }
+        )}
+      </div>
+    );
   };
 
   const renderContent = () => {
@@ -1357,7 +1415,7 @@ const App: React.FC = () => {
                         />
                         <LayerToggle 
                           active={mapLayers.publicLand} 
-                          onClick={() => setMapLayers({...mapLayers, publicLand: !mapLayers.publicLand})} 
+                          onClick={() => setMapLayers({...mapLayers, neighborhoods: !mapLayers.neighborhoods})} 
                           label="Quản lý Đất công" 
                           icon={<Landmark size={14} className="text-amber-500" />} 
                         />
