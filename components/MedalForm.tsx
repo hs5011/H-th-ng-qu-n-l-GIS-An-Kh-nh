@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { MedalRecord, HouseNumberRecord, RelationshipType, MedalType } from '../types';
-import { X, Save, Search, CheckCircle2, User, Building, Plus, Trash2, Award, List, Wallet, UserCog } from 'lucide-react';
+import { X, Save, Search, CheckCircle2, User, Building, Plus, Trash2, Award, List, Wallet, UserCog, Edit, RotateCcw } from 'lucide-react';
 
 interface MedalFormProps {
   initialData?: Partial<MedalRecord>;
@@ -24,6 +24,7 @@ const MedalForm: React.FC<MedalFormProps> = ({
 }) => {
   const [selectedHouseId, setSelectedHouseId] = useState<string | undefined>(initialData?.LinkedHouseId);
   const [houseSearch, setHouseSearch] = useState('');
+  const [editingTempIndex, setEditingTempIndex] = useState<number | null>(null);
   
   const [medalsList, setMedalsList] = useState<Partial<MedalRecord>[]>(
     isEditing && initialData ? [initialData] : []
@@ -65,7 +66,33 @@ const MedalForm: React.FC<MedalFormProps> = ({
     if (!currentMedal.HoTen) return alert('Vui lòng nhập họ tên người được huân chương');
     if (!currentMedal.LoaiDoiTuong) return alert('Vui lòng chọn loại huân chương');
     
-    setMedalsList(prev => [...prev, { ...currentMedal, id: Math.random().toString(36).substr(2, 9) }]);
+    if (editingTempIndex !== null) {
+      const newList = [...medalsList];
+      newList[editingTempIndex] = { ...currentMedal };
+      setMedalsList(newList);
+      setEditingTempIndex(null);
+    } else {
+      setMedalsList(prev => [...prev, { ...currentMedal, id: Math.random().toString(36).substr(2, 9) }]);
+    }
+
+    setCurrentMedal({
+      HoTen: '',
+      QuanHe: '',
+      LoaiDoiTuong: '',
+      SoQuanLyHS: '',
+      SoTien: 0,
+      NguoiNhanThay: '',
+      GhiChu: ''
+    });
+  };
+
+  const handleEditTemp = (index: number) => {
+    setEditingTempIndex(index);
+    setCurrentMedal(medalsList[index]);
+  };
+
+  const cancelEdit = () => {
+    setEditingTempIndex(null);
     setCurrentMedal({
       HoTen: '',
       QuanHe: '',
@@ -78,6 +105,7 @@ const MedalForm: React.FC<MedalFormProps> = ({
   };
 
   const removeFromList = (index: number) => {
+    if (editingTempIndex === index) setEditingTempIndex(null);
     setMedalsList(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -101,7 +129,6 @@ const MedalForm: React.FC<MedalFormProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          {/* Section 1: House Selection */}
           <div className="space-y-4">
             <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Building size={14} className="text-blue-600" /> 1. Chọn số nhà liên kết
@@ -153,7 +180,7 @@ const MedalForm: React.FC<MedalFormProps> = ({
                   </div>
                 </div>
                 {!isEditing && (
-                  <button onClick={() => setSelectedHouseId(undefined)} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
+                  <button onClick={() => { setSelectedHouseId(undefined); setMedalsList([]); }} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
                     <Trash2 size={18} />
                   </button>
                 )}
@@ -165,14 +192,19 @@ const MedalForm: React.FC<MedalFormProps> = ({
             )}
           </div>
 
-          {/* Section 2: Medal Input */}
           {selectedHouseId && (
             <div className="space-y-6 border-t pt-6 animation-fade-in">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Award size={14} className="text-amber-600" /> 2. Nhập thông tin Huân chương kháng chiến
               </label>
 
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+              <div className={`p-6 rounded-2xl border transition-all ${editingTempIndex !== null ? 'bg-orange-50 border-orange-200 ring-2 ring-orange-200' : 'bg-slate-50 border-slate-200'} space-y-4`}>
+                {editingTempIndex !== null && (
+                  <div className="flex items-center justify-between bg-orange-100 px-3 py-1.5 rounded-lg mb-2">
+                    <p className="text-xs font-bold text-orange-700 flex items-center gap-2"><Edit size={14} /> Đang chỉnh sửa dòng thứ {editingTempIndex + 1}</p>
+                    <button onClick={cancelEdit} className="text-[10px] font-bold text-orange-600 flex items-center gap-1 hover:underline"><RotateCcw size={12}/> Hủy sửa</button>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Họ và tên người nhận <span className="text-red-500">*</span></label>
@@ -248,14 +280,14 @@ const MedalForm: React.FC<MedalFormProps> = ({
                   <button 
                     type="button" 
                     onClick={handleAddToList}
-                    className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-md active:scale-95"
+                    className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${editingTempIndex !== null ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
                   >
-                    <Plus size={16} /> Thêm vào danh sách tạm
+                    {editingTempIndex !== null ? <Save size={16} /> : <Plus size={16} />} 
+                    {editingTempIndex !== null ? 'Cập nhật vào danh sách' : 'Thêm vào danh sách tạm'}
                   </button>
                 </div>
               </div>
 
-              {/* Temp List Display */}
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                   <List size={14} className="text-amber-600" /> Danh sách đang chờ lưu ({medalsList.length})
@@ -264,25 +296,32 @@ const MedalForm: React.FC<MedalFormProps> = ({
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 border-b">
                       <tr className="text-[10px] font-bold uppercase text-slate-400">
+                        <th className="px-4 py-3 text-center w-12">STT</th>
                         <th className="px-4 py-3">Họ tên người nhận</th>
                         <th className="px-4 py-3 text-center">Người nhận thay</th>
                         <th className="px-4 py-3 text-right">Số tiền</th>
-                        <th className="px-4 py-3 text-right">#</th>
+                        <th className="px-4 py-3 text-right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {medalsList.length > 0 ? (
                         medalsList.map((m, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50 group transition-colors">
+                          <tr key={idx} className={`hover:bg-slate-50 group transition-colors ${editingTempIndex === idx ? 'bg-orange-50/50' : ''}`}>
+                            <td className="px-4 py-3 text-center font-bold text-slate-400">{idx + 1}</td>
                             <td className="px-4 py-3 font-bold text-slate-700">{m.HoTen} <span className="text-[10px] font-normal text-slate-400">({m.QuanHe})</span></td>
                             <td className="px-4 py-3 text-center">
                               {m.NguoiNhanThay ? <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">{m.NguoiNhanThay}</span> : <span className="text-[10px] text-slate-400">Chính chủ</span>}
                             </td>
                             <td className="px-4 py-3 text-right font-black text-emerald-600">{(m.SoTien || 0).toLocaleString()}</td>
                             <td className="px-4 py-3 text-right">
-                              <button onClick={() => removeFromList(idx)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
-                                <Trash2 size={14} />
-                              </button>
+                              <div className="flex items-center justify-end gap-1">
+                                <button onClick={() => handleEditTemp(idx)} className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
+                                  <Edit size={14} />
+                                </button>
+                                <button onClick={() => removeFromList(idx)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))

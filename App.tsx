@@ -24,8 +24,9 @@ import PolicyForm from './components/PolicyForm';
 import PolicyTypeForm from './components/PolicyTypeForm';
 import SocialProtectionForm from './components/SocialProtectionForm';
 import SocialProtectionTypeForm from './components/SocialProtectionTypeForm';
+import HouseLookup from './components/HouseLookup';
 
-type SidebarTab = 'records' | 'public_land' | 'generals' | 'medals' | 'merits' | 'policies' | 'social_protections' | 'planning' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types' | 'medal_types' | 'policy_types' | 'social_protection_types';
+type SidebarTab = 'records' | 'search_by_house' | 'public_land' | 'generals' | 'medals' | 'merits' | 'policies' | 'social_protections' | 'planning' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types' | 'medal_types' | 'policy_types' | 'social_protection_types';
 
 const App: React.FC = () => {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('records');
@@ -697,6 +698,17 @@ const App: React.FC = () => {
             </div>
           </div>
         );
+      case 'search_by_house':
+        return (
+          <HouseLookup 
+            houses={records}
+            generals={generals}
+            merits={merits}
+            medals={medals}
+            policies={policies}
+            socialProtections={socialProtections}
+          />
+        );
       case 'public_land':
         return (
           <div className="flex-1 flex flex-col overflow-hidden p-6 gap-6">
@@ -796,7 +808,7 @@ const App: React.FC = () => {
                       <th className="px-6 py-4">Quan hệ với chủ hộ</th>
                       <th className="px-6 py-4">Diện</th>
                       <th className="px-6 py-4">Tình trạng</th>
-                      <th className="px-6 py-4">Ghi chú</th>
+                      <th className="px-6 py-4">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
                   </thead>
@@ -814,7 +826,9 @@ const App: React.FC = () => {
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${general.Dien === 'TW' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>{general.Dien}</span>
                         </td>
                         <td className="px-6 py-4 text-xs font-semibold text-slate-700">{general.TinhTrang}</td>
-                        <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">{general.GhiChu || '--'}</td>
+                        <td className="px-6 py-4 text-center">
+                          {general.NguoiNhanThay ? <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">{general.NguoiNhanThay}</span> : <span className="text-[10px] text-slate-400 italic">Chính chủ</span>}
+                        </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button onClick={() => { setEditingGeneral(general); setIsGeneralFormOpen(true); }} className="p-1.5 hover:bg-indigo-600 hover:text-white text-indigo-600 rounded-lg transition-colors"><Edit size={14} /></button>
@@ -853,7 +867,7 @@ const App: React.FC = () => {
                       <th className="px-6 py-4">Họ và tên đối tượng</th>
                       <th className="px-6 py-4">Quan hệ với chủ nhà</th>
                       <th className="px-6 py-4">Loại đối tượng</th>
-                      <th className="px-6 py-4">Số hồ sơ</th>
+                      <th className="px-6 py-4">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Số tiền trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -871,7 +885,9 @@ const App: React.FC = () => {
                         <td className="px-6 py-4">
                           <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">{merit.LoaiDoiTuong}</span>
                         </td>
-                        <td className="px-6 py-4 text-xs font-mono text-slate-700">{merit.SoQuanLyHS}</td>
+                        <td className="px-6 py-4 text-center">
+                           {merit.NguoiNhanThay ? <span className="text-[10px] text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded">{merit.NguoiNhanThay}</span> : <span className="text-[10px] text-slate-400 italic">Chính chủ</span>}
+                        </td>
                         <td className="px-6 py-4 text-right font-black text-emerald-600">{(merit.SoTien || 0).toLocaleString()}</td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -911,7 +927,7 @@ const App: React.FC = () => {
                       <th className="px-6 py-4">Họ tên người nhận</th>
                       <th className="px-6 py-4">Quan hệ với chủ nhà</th>
                       <th className="px-6 py-4">Loại huân chương</th>
-                      <th className="px-6 py-4">Số hồ sơ</th>
+                      <th className="px-6 py-4">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Số tiền trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -929,7 +945,9 @@ const App: React.FC = () => {
                         <td className="px-6 py-4">
                           <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">{medal.LoaiDoiTuong}</span>
                         </td>
-                        <td className="px-6 py-4 text-xs font-mono text-slate-700">{medal.SoQuanLyHS}</td>
+                        <td className="px-6 py-4 text-center">
+                           {medal.NguoiNhanThay ? <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">{medal.NguoiNhanThay}</span> : <span className="text-[10px] text-slate-400 italic">Chính chủ</span>}
+                        </td>
                         <td className="px-6 py-4 text-right font-black text-emerald-600">{(medal.SoTien || 0).toLocaleString()}</td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -968,7 +986,7 @@ const App: React.FC = () => {
                     <tr className="text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b">
                       <th className="px-6 py-4">Đối tượng chính sách</th>
                       <th className="px-6 py-4">Diện chính sách</th>
-                      <th className="px-6 py-4 text-center">Tỷ lệ thương tật</th>
+                      <th className="px-6 py-4 text-center">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Số hồ sơ / Tiền trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -984,7 +1002,7 @@ const App: React.FC = () => {
                           <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">{policy.LoaiDienChinhSach}</span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className="text-sm font-black text-red-600">{policy.TyLeTonThuong || '--'}</span>
+                           {policy.NguoiNhanThay ? <span className="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">{policy.NguoiNhanThay}</span> : <span className="text-[10px] text-slate-400 italic">Chính chủ</span>}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <p className="text-xs font-mono text-slate-500">{policy.SoQuanLyHS}</p>
@@ -1028,7 +1046,7 @@ const App: React.FC = () => {
                       <th className="px-6 py-4">Đối tượng hưởng BTXH</th>
                       <th className="px-6 py-4">Diện bảo trợ</th>
                       <th className="px-6 py-4">Quan hệ với chủ nhà</th>
-                      <th className="px-6 py-4">Số hồ sơ</th>
+                      <th className="px-6 py-4">Người nhận thay</th>
                       <th className="px-6 py-4 text-right">Mức trợ cấp</th>
                       <th className="px-6 py-4 text-right">Thao tác</th>
                     </tr>
@@ -1046,7 +1064,9 @@ const App: React.FC = () => {
                         <td className="px-6 py-4">
                           <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{social.QuanHe}</span>
                         </td>
-                        <td className="px-6 py-4 text-xs font-mono text-slate-500">{social.SoQuanLyHS}</td>
+                        <td className="px-6 py-4 text-center">
+                           {social.NguoiNhanThay ? <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">{social.NguoiNhanThay}</span> : <span className="text-[10px] text-slate-400 italic">Chính chủ</span>}
+                        </td>
                         <td className="px-6 py-4 text-right font-black text-emerald-600">{(social.SoTien || 0).toLocaleString()} VNĐ</td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -1295,6 +1315,7 @@ const App: React.FC = () => {
         </div>
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar pb-6">
           <NavItem icon={<Database size={18} />} label="Hồ sơ số nhà" active={activeSidebarTab === 'records'} onClick={() => setActiveSidebarTab('records')} />
+          <NavItem icon={<Search size={18} />} label="Tra cứu theo Số nhà" active={activeSidebarTab === 'search_by_house'} onClick={() => setActiveSidebarTab('search_by_house')} />
           <NavItem icon={<Landmark size={18} />} label="Quản lý Đất công" active={activeSidebarTab === 'public_land'} onClick={() => setActiveSidebarTab('public_land')} />
           <NavItem icon={<ShieldAlert size={18} />} label="Quản lý Tướng lĩnh" active={activeSidebarTab === 'generals'} onClick={() => setActiveSidebarTab('generals')} />
           <NavItem icon={<Heart size={18} />} label="Người có công" active={activeSidebarTab === 'merits'} onClick={() => setActiveSidebarTab('merits')} />

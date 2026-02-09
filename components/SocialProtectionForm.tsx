@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { SocialProtectionRecord, HouseNumberRecord, RelationshipType, SocialProtectionType } from '../types';
-import { X, Save, Search, CheckCircle2, Building, Plus, Trash2, HeartHandshake, List, Wallet, UserCog } from 'lucide-react';
+import { X, Save, Search, CheckCircle2, Building, Plus, Trash2, HeartHandshake, List, Wallet, UserCog, Edit, RotateCcw } from 'lucide-react';
 
 interface SocialProtectionFormProps {
   initialData?: Partial<SocialProtectionRecord>;
@@ -24,6 +24,7 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
 }) => {
   const [selectedHouseId, setSelectedHouseId] = useState<string | undefined>(initialData?.LinkedHouseId);
   const [houseSearch, setHouseSearch] = useState('');
+  const [editingTempIndex, setEditingTempIndex] = useState<number | null>(null);
   
   const [recordsList, setRecordsList] = useState<Partial<SocialProtectionRecord>[]>(
     isEditing && initialData ? [initialData] : []
@@ -65,7 +66,33 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
     if (!currentRecord.HoTen) return alert('Vui lòng nhập họ tên đối tượng');
     if (!currentRecord.LoaiDien) return alert('Vui lòng chọn loại diện bảo trợ');
     
-    setRecordsList(prev => [...prev, { ...currentRecord, id: Math.random().toString(36).substr(2, 9) }]);
+    if (editingTempIndex !== null) {
+      const newList = [...recordsList];
+      newList[editingTempIndex] = { ...currentRecord };
+      setRecordsList(newList);
+      setEditingTempIndex(null);
+    } else {
+      setRecordsList(prev => [...prev, { ...currentRecord, id: Math.random().toString(36).substr(2, 9) }]);
+    }
+
+    setCurrentRecord({
+      HoTen: '',
+      QuanHe: '',
+      LoaiDien: '',
+      SoQuanLyHS: '',
+      SoTien: 0,
+      NguoiNhanThay: '',
+      GhiChu: ''
+    });
+  };
+
+  const handleEditTemp = (index: number) => {
+    setEditingTempIndex(index);
+    setCurrentRecord(recordsList[index]);
+  };
+
+  const cancelEdit = () => {
+    setEditingTempIndex(null);
     setCurrentRecord({
       HoTen: '',
       QuanHe: '',
@@ -78,6 +105,7 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
   };
 
   const removeFromList = (index: number) => {
+    if (editingTempIndex === index) setEditingTempIndex(null);
     setRecordsList(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -120,7 +148,7 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
                 </div>
 
                 {filteredHouses.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border rounded-lg shadow-xl overflow-hidden divide-y">
+                  <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border rounded-lg shadow-xl overflow-hidden divide-y">
                     {filteredHouses.map(house => (
                       <button 
                         key={house.id}
@@ -152,7 +180,7 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
                   </div>
                 </div>
                 {!isEditing && (
-                  <button onClick={() => setSelectedHouseId(undefined)} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
+                  <button onClick={() => { setSelectedHouseId(undefined); setRecordsList([]); }} className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
                     <Trash2 size={18} />
                   </button>
                 )}
@@ -170,7 +198,13 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
                 <HeartHandshake size={14} className="text-emerald-600" /> 2. Nhập thông tin Đối tượng bảo trợ
               </label>
 
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+              <div className={`p-6 rounded-2xl border transition-all ${editingTempIndex !== null ? 'bg-orange-50 border-orange-200 ring-2 ring-orange-200' : 'bg-slate-50 border-slate-200'} space-y-4`}>
+                {editingTempIndex !== null && (
+                  <div className="flex items-center justify-between bg-orange-100 px-3 py-1.5 rounded-lg mb-2">
+                    <p className="text-xs font-bold text-orange-700 flex items-center gap-2"><Edit size={14} /> Đang chỉnh sửa dòng thứ {editingTempIndex + 1}</p>
+                    <button onClick={cancelEdit} className="text-[10px] font-bold text-orange-600 flex items-center gap-1 hover:underline"><RotateCcw size={12}/> Hủy sửa</button>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Họ và tên đối tượng <span className="text-red-500">*</span></label>
@@ -246,9 +280,10 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
                   <button 
                     type="button" 
                     onClick={handleAddToList}
-                    className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-md active:scale-95"
+                    className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${editingTempIndex !== null ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
                   >
-                    <Plus size={16} /> Thêm vào danh sách tạm
+                    {editingTempIndex !== null ? <Save size={16} /> : <Plus size={16} />} 
+                    {editingTempIndex !== null ? 'Cập nhật vào danh sách' : 'Thêm vào danh sách tạm'}
                   </button>
                 </div>
               </div>
@@ -261,17 +296,19 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 border-b">
                       <tr className="text-[10px] font-bold uppercase text-slate-400">
+                        <th className="px-4 py-3 text-center w-12">STT</th>
                         <th className="px-4 py-3">Đối tượng</th>
                         <th className="px-4 py-3">Loại diện bảo trợ</th>
                         <th className="px-4 py-3 text-center">Người nhận thay</th>
                         <th className="px-4 py-3 text-right">Số tiền</th>
-                        <th className="px-4 py-3 text-right">#</th>
+                        <th className="px-4 py-3 text-right">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {recordsList.length > 0 ? (
                         recordsList.map((r, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50 group transition-colors">
+                          <tr key={idx} className={`hover:bg-slate-50 group transition-colors ${editingTempIndex === idx ? 'bg-orange-50/50' : ''}`}>
+                            <td className="px-4 py-3 text-center font-bold text-slate-400">{idx + 1}</td>
                             <td className="px-4 py-3 font-bold text-slate-700">{r.HoTen} <span className="text-[10px] font-normal text-slate-400">({r.QuanHe})</span></td>
                             <td className="px-4 py-3 text-emerald-700 font-medium">{r.LoaiDien}</td>
                             <td className="px-4 py-3 text-center">
@@ -279,15 +316,20 @@ const SocialProtectionForm: React.FC<SocialProtectionFormProps> = ({
                             </td>
                             <td className="px-4 py-3 text-right font-black text-emerald-600">{(r.SoTien || 0).toLocaleString()}</td>
                             <td className="px-4 py-3 text-right">
-                              <button onClick={() => removeFromList(idx)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
-                                <Trash2 size={14} />
-                              </button>
+                              <div className="flex items-center justify-end gap-1">
+                                <button onClick={() => handleEditTemp(idx)} className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
+                                  <Edit size={14} />
+                                </button>
+                                <button onClick={() => removeFromList(idx)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-slate-400 italic">Chưa có hồ sơ nào được thêm vào danh sách</td>
+                          <td colSpan={6} className="px-4 py-8 text-center text-slate-400 italic">Chưa có hồ sơ nào được thêm vào danh sách</td>
                         </tr>
                       )}
                     </tbody>
