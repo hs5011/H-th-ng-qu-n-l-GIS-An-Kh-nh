@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, Plus, Map as MapIcon, List, Filter, 
   Trash2, Edit, CheckCircle, AlertCircle,
-  Home, Database, MapPin, Milestone, Building2, Landmark, Info, Layers, Eye, EyeOff, Globe, Users, ShieldAlert, Heart, Wallet, Award, ShieldCheck, Scale, HandHeart
+  Home, Database, MapPin, Milestone, Building2, Landmark, Info, Layers, Eye, EyeOff, Globe, Users, ShieldAlert, Heart, Wallet, Award, ShieldCheck, Scale, HandHeart, BarChart3
 } from 'lucide-react';
 import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralRecord, GeneralStatus, MeritRecord, MeritType, MedalRecord, MedalType, PolicyRecord, PolicyType, SocialProtectionRecord, SocialProtectionType, Bank } from './types';
 import { INITIAL_DATA, INITIAL_STREETS, INITIAL_NEIGHBORHOODS, INITIAL_PUBLIC_LAND, INITIAL_WARD_BOUNDARY, INITIAL_RELATIONSHIPS, INITIAL_GENERAL_STATUS, INITIAL_MERIT_TYPES, INITIAL_MEDAL_TYPES, INITIAL_POLICY_TYPES, INITIAL_SOCIAL_PROTECTION_TYPES, INITIAL_BANKS } from './constants';
@@ -26,8 +26,9 @@ import SocialProtectionForm from './components/SocialProtectionForm';
 import SocialProtectionTypeForm from './components/SocialProtectionTypeForm';
 import HouseLookup from './components/HouseLookup';
 import BankForm from './components/BankForm';
+import ReportsView from './components/ReportsView';
 
-type SidebarTab = 'records' | 'search_by_house' | 'public_land' | 'generals' | 'medals' | 'merits' | 'policies' | 'social_protections' | 'planning' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types' | 'medal_types' | 'policy_types' | 'social_protection_types' | 'bank_management';
+type SidebarTab = 'records' | 'search_by_house' | 'public_land' | 'generals' | 'medals' | 'merits' | 'policies' | 'social_protections' | 'planning' | 'reports' | 'streets' | 'neighborhoods' | 'ward_boundary' | 'relationships' | 'general_statuses' | 'merit_types' | 'medal_types' | 'policy_types' | 'social_protection_types' | 'bank_management';
 
 const App: React.FC = () => {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('records');
@@ -849,6 +850,18 @@ const App: React.FC = () => {
             </div>
           </div>
         );
+      case 'reports':
+        return (
+          <ReportsView 
+            records={records}
+            publicLands={publicLands}
+            generals={generals}
+            merits={merits}
+            medals={medals}
+            policies={policies}
+            socialProtections={socialProtections}
+          />
+        );
       case 'generals':
         return (
           <div className="flex-1 flex flex-col overflow-hidden p-6 gap-6">
@@ -1388,6 +1401,7 @@ const App: React.FC = () => {
           <NavItem icon={<Award size={18} />} label="Huân chương KC" active={activeSidebarTab === 'medals'} onClick={() => setActiveSidebarTab('medals')} />
           <NavItem icon={<ShieldCheck size={18} />} label="Đối tượng chính sách" active={activeSidebarTab === 'policies'} onClick={() => setActiveSidebarTab('policies')} />
           <NavItem icon={<HandHeart size={18} />} label="Đối tượng bảo trợ" active={activeSidebarTab === 'social_protections'} onClick={() => setActiveSidebarTab('social_protections')} />
+          <NavItem icon={<BarChart3 size={18} />} label="Thống kê & Báo cáo" active={activeSidebarTab === 'reports'} onClick={() => setActiveSidebarTab('reports')} />
           <NavItem icon={<MapIcon size={18} />} label="Bản đồ" active={activeSidebarTab === 'planning'} onClick={() => setActiveSidebarTab('planning')} />
           
           <div className="pt-4 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Danh mục hệ thống</div>
