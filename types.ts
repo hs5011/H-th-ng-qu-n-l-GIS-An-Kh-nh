@@ -117,11 +117,13 @@ export interface GeneralRecord extends PaymentInfo {
   Dien: 'TW' | 'Thành ủy';
   DiaChiThuongTru: string;
   TinhTrang: string;
+  SoQuanLyHS?: string;
   NguoiNhanThay?: string;
   GhiChu?: string;
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;
+  UpdatedAt?: string;
 }
 
 export interface MeritRecord extends PaymentInfo {
@@ -137,6 +139,7 @@ export interface MeritRecord extends PaymentInfo {
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;
+  UpdatedAt?: string;
 }
 
 export interface MedalRecord extends PaymentInfo {
@@ -152,6 +155,7 @@ export interface MedalRecord extends PaymentInfo {
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;
+  UpdatedAt?: string;
 }
 
 export interface PolicyRecord extends PaymentInfo {
@@ -168,6 +172,7 @@ export interface PolicyRecord extends PaymentInfo {
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;
+  UpdatedAt?: string;
 }
 
 export interface SocialProtectionRecord extends PaymentInfo {
@@ -183,6 +188,7 @@ export interface SocialProtectionRecord extends PaymentInfo {
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;
+  UpdatedAt?: string;
 }
 
 export interface HouseNumberRecord {

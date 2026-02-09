@@ -221,7 +221,11 @@ const RelatedRecordsManager: React.FC<RelatedRecordsManagerProps> = ({
                           <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
                             <td className="px-6 py-4">
                               <p className="font-bold text-slate-800">{item.HoTen}</p>
-                              <p className="text-[10px] text-slate-400 font-mono">HS: {item.SoQuanLyHS || 'Chưa có mã'}</p>
+                              {item.SoQuanLyHS ? (
+                                <p className="text-[10px] text-blue-500 font-mono font-bold mt-0.5">Mã HS: {item.SoQuanLyHS}</p>
+                              ) : (
+                                <p className="text-[10px] text-slate-300 italic mt-0.5">Chưa cập nhật mã</p>
+                              )}
                             </td>
                             <td className="px-6 py-4">
                               <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">

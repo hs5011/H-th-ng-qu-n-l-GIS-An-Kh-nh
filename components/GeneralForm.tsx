@@ -28,7 +28,6 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
   const [houseSearch, setHouseSearch] = useState('');
   const [editingTempIndex, setEditingTempIndex] = useState<number | null>(null);
   
-  // Tự động nhận diện nếu đã có LinkedHouseId được truyền vào ngay từ đầu
   const isHouseLocked = useMemo(() => !!initialData?.LinkedHouseId && !isEditing, [initialData, isEditing]);
 
   const [generalsList, setGeneralsList] = useState<Partial<GeneralRecord>[]>(
@@ -36,10 +35,11 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
   );
 
   const [currentGeneral, setCurrentGeneral] = useState<Partial<GeneralRecord>>({
-    Dien: 'TW',
-    TinhTrang: '',
+    Dien: initialData?.Dien || 'TW',
+    TinhTrang: initialData?.TinhTrang || '',
     HoTen: initialData?.HoTen || '',
     QuanHe: initialData?.QuanHe || '',
+    SoQuanLyHS: initialData?.SoQuanLyHS || '',
     DiaChiThuongTru: initialData?.DiaChiThuongTru || '',
     NguoiNhanThay: initialData?.NguoiNhanThay || '',
     GhiChu: initialData?.GhiChu || '',
@@ -89,19 +89,22 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
       setGeneralsList(prev => [...prev, { ...currentGeneral, id: Math.random().toString(36).substr(2, 9) }]);
     }
 
-    setCurrentGeneral({
-      Dien: 'TW',
-      TinhTrang: '',
-      HoTen: '',
-      QuanHe: '',
-      DiaChiThuongTru: '',
-      NguoiNhanThay: '',
-      GhiChu: '',
-      HinhThucNhan: 'Tiền mặt',
-      NganHang: '',
-      SoTaiKhoan: '',
-      ChuTaiKhoan: ''
-    });
+    if (!isEditing) {
+      setCurrentGeneral({
+        Dien: 'TW',
+        TinhTrang: '',
+        HoTen: '',
+        QuanHe: '',
+        SoQuanLyHS: '',
+        DiaChiThuongTru: '',
+        NguoiNhanThay: '',
+        GhiChu: '',
+        HinhThucNhan: 'Tiền mặt',
+        NganHang: '',
+        SoTaiKhoan: '',
+        ChuTaiKhoan: ''
+      });
+    }
   };
 
   const handleEditTemp = (index: number) => {
@@ -116,6 +119,7 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
       TinhTrang: '',
       HoTen: '',
       QuanHe: '',
+      SoQuanLyHS: '',
       DiaChiThuongTru: '',
       NguoiNhanThay: '',
       GhiChu: '',
@@ -133,9 +137,15 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
 
   const handleSaveAll = () => {
     if (!selectedHouseId) return alert('Vui lòng chọn số nhà liên kết');
-    if (generalsList.length === 0) return alert('Vui lòng thêm ít nhất một tướng lĩnh vào danh sách');
     
-    const finalData = generalsList.map(g => ({ ...g, LinkedHouseId: selectedHouseId }));
+    let finalData;
+    if (isEditing) {
+      finalData = [{ ...currentGeneral, LinkedHouseId: selectedHouseId }];
+    } else {
+      if (generalsList.length === 0) return alert('Vui lòng thêm ít nhất một tướng lĩnh vào danh sách');
+      finalData = generalsList.map(g => ({ ...g, LinkedHouseId: selectedHouseId }));
+    }
+    
     onSubmit(finalData);
   };
 
@@ -223,7 +233,7 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
               <div className={`p-6 rounded-2xl border transition-all ${editingTempIndex !== null ? 'bg-orange-50 border-orange-200 ring-2 ring-orange-200' : 'bg-slate-50 border-slate-200'} space-y-4`}>
                 {editingTempIndex !== null && (
                   <div className="flex items-center justify-between bg-orange-100 px-3 py-1.5 rounded-lg mb-2">
-                    <p className="text-xs font-bold text-orange-700 flex items-center gap-2"><Edit size={14} /> Đang chỉnh sửa hồ sơ</p>
+                    <p className="text-xs font-bold text-orange-700 flex items-center gap-2"><Edit size={14} /> Đang chỉnh sửa dòng trong danh sách chờ</p>
                     <button onClick={cancelEdit} className="text-[10px] font-bold text-orange-600 flex items-center gap-1 hover:underline"><RotateCcw size={12}/> Hủy sửa</button>
                   </div>
                 )}
@@ -247,6 +257,15 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
                       <option value="">-- Chọn quan hệ --</option>
                       {relationshipTypes.map(rel => <option key={rel.id} value={rel.name}>{rel.name}</option>)}
                     </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-600 font-mono text-blue-600">Số quản lý hồ sơ (Nếu có)</label>
+                    <input 
+                      value={currentGeneral.SoQuanLyHS || ''} 
+                      onChange={e => setCurrentGeneral({...currentGeneral, SoQuanLyHS: e.target.value})} 
+                      className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono" 
+                      placeholder="VD: HS-12345..." 
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600">Diện quản lý</label>
@@ -346,16 +365,18 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
                     />
                   </div>
                 </div>
-                <div className="flex justify-end pt-2">
-                  <button 
-                    type="button" 
-                    onClick={handleAddToList}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${editingTempIndex !== null ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                  >
-                    {editingTempIndex !== null ? <Save size={16} /> : <Plus size={16} />} 
-                    {editingTempIndex !== null ? 'Cập nhật dòng' : 'Thêm vào danh sách chờ'}
-                  </button>
-                </div>
+                {!isEditing && (
+                  <div className="flex justify-end pt-2">
+                    <button 
+                      type="button" 
+                      onClick={handleAddToList}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${editingTempIndex !== null ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                    >
+                      {editingTempIndex !== null ? <Save size={16} /> : <Plus size={16} />} 
+                      {editingTempIndex !== null ? 'Cập nhật dòng' : 'Thêm vào danh sách chờ'}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {!isEditing && (
@@ -428,7 +449,7 @@ const GeneralForm: React.FC<GeneralFormProps> = ({
         <div className="p-6 border-t bg-slate-50 flex justify-end gap-3 shrink-0">
           <button onClick={onClose} className="px-6 py-2 text-slate-600 font-medium hover:text-slate-800 transition-colors">Hủy</button>
           <button 
-            onClick={isEditing ? () => handleSaveAll() : handleSaveAll}
+            onClick={handleSaveAll}
             disabled={!selectedHouseId || (!isEditing && generalsList.length === 0)}
             className={`px-8 py-2 rounded-xl shadow-lg flex items-center gap-2 transition-all transform active:scale-95 font-bold ${(!selectedHouseId || (!isEditing && generalsList.length === 0)) ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-105'}`}
           >

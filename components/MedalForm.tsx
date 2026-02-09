@@ -88,19 +88,21 @@ const MedalForm: React.FC<MedalFormProps> = ({
       setMedalsList(prev => [...prev, { ...currentMedal, id: Math.random().toString(36).substr(2, 9) }]);
     }
 
-    setCurrentMedal({
-      HoTen: '',
-      QuanHe: '',
-      LoaiDoiTuong: '',
-      SoQuanLyHS: '',
-      SoTien: 0,
-      NguoiNhanThay: '',
-      GhiChu: '',
-      HinhThucNhan: 'Tiền mặt',
-      NganHang: '',
-      SoTaiKhoan: '',
-      ChuTaiKhoan: ''
-    });
+    if (!isEditing) {
+      setCurrentMedal({
+        HoTen: '',
+        QuanHe: '',
+        LoaiDoiTuong: '',
+        SoQuanLyHS: '',
+        SoTien: 0,
+        NguoiNhanThay: '',
+        GhiChu: '',
+        HinhThucNhan: 'Tiền mặt',
+        NganHang: '',
+        SoTaiKhoan: '',
+        ChuTaiKhoan: ''
+      });
+    }
   };
 
   const handleEditTemp = (index: number) => {
@@ -132,9 +134,14 @@ const MedalForm: React.FC<MedalFormProps> = ({
 
   const handleSaveAll = () => {
     if (!selectedHouseId) return alert('Vui lòng chọn số nhà liên kết');
-    if (medalsList.length === 0) return alert('Vui lòng thêm ít nhất một hồ sơ vào danh sách');
     
-    const finalData = medalsList.map(m => ({ ...m, LinkedHouseId: selectedHouseId }));
+    let finalData;
+    if (isEditing) {
+      finalData = [{ ...currentMedal, LinkedHouseId: selectedHouseId }];
+    } else {
+      if (medalsList.length === 0) return alert('Vui lòng thêm ít nhất một hồ sơ vào danh sách');
+      finalData = medalsList.map(m => ({ ...m, LinkedHouseId: selectedHouseId }));
+    }
     onSubmit(finalData);
   };
 
@@ -343,16 +350,18 @@ const MedalForm: React.FC<MedalFormProps> = ({
                     />
                   </div>
                 </div>
-                <div className="flex justify-end pt-2">
-                  <button 
-                    type="button" 
-                    onClick={handleAddToList}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${editingTempIndex !== null ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-                  >
-                    {editingTempIndex !== null ? <Save size={16} /> : <Plus size={16} />} 
-                    {editingTempIndex !== null ? 'Cập nhật dòng' : 'Thêm vào danh sách chờ'}
-                  </button>
-                </div>
+                {!isEditing && (
+                  <div className="flex justify-end pt-2">
+                    <button 
+                      type="button" 
+                      onClick={handleAddToList}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${editingTempIndex !== null ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
+                    >
+                      {editingTempIndex !== null ? <Save size={16} /> : <Plus size={16} />} 
+                      {editingTempIndex !== null ? 'Cập nhật dòng' : 'Thêm vào danh sách chờ'}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {!isEditing && (

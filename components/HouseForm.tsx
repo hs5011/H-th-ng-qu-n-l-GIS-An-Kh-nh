@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { HouseNumberRecord, FormTab, Street, Neighborhood, FamilyMember, RelationshipType } from '../types';
-import { X, Save, User, MapPin, FileText, Settings, Navigation, Plus, Trash2, Heart, HeartOff, Users } from 'lucide-react';
+import { X, Save, User, MapPin, FileText, Settings, Navigation, Plus, Trash2, Heart, HeartOff, Users, Edit } from 'lucide-react';
 import MapView from './MapView';
 
 interface HouseFormProps {
@@ -34,6 +34,7 @@ const HouseForm: React.FC<HouseFormProps> = ({
   });
   
   const [activeTab, setActiveTab] = useState<FormTab>('Owner');
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [newMember, setNewMember] = useState<Omit<FamilyMember, 'id'>>({
     HoTen: '',
     QuanHe: '',
@@ -58,14 +59,28 @@ const HouseForm: React.FC<HouseFormProps> = ({
       alert('Vui lòng nhập Họ tên và chọn Mối quan hệ.');
       return;
     }
-    const memberWithId: FamilyMember = {
-      ...newMember,
-      id: Math.random().toString(36).substr(2, 9)
-    };
-    setFormData(prev => ({
-      ...prev,
-      QuanHeChuHo: [...(prev.QuanHeChuHo || []), memberWithId]
-    }));
+
+    if (editingMemberId) {
+      // Cập nhật thành viên đang sửa
+      setFormData(prev => ({
+        ...prev,
+        QuanHeChuHo: (prev.QuanHeChuHo || []).map(m => 
+          m.id === editingMemberId ? { ...newMember, id: editingMemberId } : m
+        )
+      }));
+      setEditingMemberId(null);
+    } else {
+      // Thêm mới
+      const memberWithId: FamilyMember = {
+        ...newMember,
+        id: Math.random().toString(36).substr(2, 9)
+      };
+      setFormData(prev => ({
+        ...prev,
+        QuanHeChuHo: [...(prev.QuanHeChuHo || []), memberWithId]
+      }));
+    }
+
     setNewMember({
       HoTen: '',
       QuanHe: '',
@@ -76,7 +91,23 @@ const HouseForm: React.FC<HouseFormProps> = ({
     });
   };
 
+  const editFamilyMember = (member: FamilyMember) => {
+    setEditingMemberId(member.id);
+    setNewMember({
+      HoTen: member.HoTen,
+      QuanHe: member.QuanHe,
+      NgaySinh: member.NgaySinh,
+      GioiTinh: member.GioiTinh,
+      SoCCCD: member.SoCCCD,
+      TrangThai: member.TrangThai
+    });
+  };
+
   const removeFamilyMember = (id: string) => {
+    if (editingMemberId === id) {
+       setEditingMemberId(null);
+       setNewMember({ HoTen: '', QuanHe: '', NgaySinh: '', GioiTinh: 'Nam', SoCCCD: '', TrangThai: 'Còn sống' });
+    }
     setFormData(prev => ({
       ...prev,
       QuanHeChuHo: (prev.QuanHeChuHo || []).filter(m => m.id !== id)
@@ -124,7 +155,7 @@ const HouseForm: React.FC<HouseFormProps> = ({
                 <Users size={16} className="text-blue-600" /> Danh sách người liên quan / Thành viên gia đình
               </h3>
               
-              <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-300 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className={`p-4 rounded-xl border border-dashed transition-all ${editingMemberId ? 'bg-orange-50 border-orange-300 ring-1 ring-orange-200' : 'bg-slate-50 border-slate-300'} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3`}>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Họ tên</label>
                   <input value={newMember.HoTen} onChange={e => setNewMember({...newMember, HoTen: e.target.value})} className="w-full px-2 py-1.5 text-sm border rounded-md" placeholder="Nguyễn Văn B" />
@@ -163,9 +194,15 @@ const HouseForm: React.FC<HouseFormProps> = ({
                     <option value="Đã mất">Đã mất</option>
                   </select>
                 </div>
-                <div className="col-span-full flex justify-end pt-2">
-                  <button type="button" onClick={addFamilyMember} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm">
-                    <Plus size={14} /> Thêm vào danh sách
+                <div className="col-span-full flex justify-end pt-2 gap-2">
+                  {editingMemberId && (
+                    <button type="button" onClick={() => { setEditingMemberId(null); setNewMember({HoTen: '', QuanHe: '', NgaySinh: '', GioiTinh: 'Nam', SoCCCD: '', TrangThai: 'Còn sống'}); }} className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg">
+                      Hủy bỏ sửa
+                    </button>
+                  )}
+                  <button type="button" onClick={addFamilyMember} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${editingMemberId ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                    {editingMemberId ? <Save size={14} /> : <Plus size={14} />} 
+                    {editingMemberId ? 'Cập nhật thành viên' : 'Thêm vào danh sách'}
                   </button>
                 </div>
               </div>
@@ -186,7 +223,7 @@ const HouseForm: React.FC<HouseFormProps> = ({
                   <tbody className="divide-y divide-slate-100">
                     {formData.QuanHeChuHo && formData.QuanHeChuHo.length > 0 ? (
                       formData.QuanHeChuHo.map(member => (
-                        <tr key={member.id} className="hover:bg-slate-50 group">
+                        <tr key={member.id} className={`hover:bg-slate-50 group transition-colors ${editingMemberId === member.id ? 'bg-orange-50' : ''}`}>
                           <td className="px-4 py-3 font-bold text-slate-700">{member.HoTen}</td>
                           <td className="px-4 py-3"><span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">{member.QuanHe}</span></td>
                           <td className="px-4 py-3 text-slate-500 font-mono">{member.SoCCCD || '--'}</td>
@@ -200,9 +237,14 @@ const HouseForm: React.FC<HouseFormProps> = ({
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <button type="button" onClick={() => removeFamilyMember(member.id)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg">
-                              <Trash2 size={14} />
-                            </button>
+                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button type="button" onClick={() => editFamilyMember(member)} className="p-1.5 hover:bg-orange-50 text-orange-600 rounded-lg">
+                                <Edit size={14} />
+                              </button>
+                              <button type="button" onClick={() => removeFamilyMember(member.id)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -347,11 +389,11 @@ const HouseForm: React.FC<HouseFormProps> = ({
 
         {/* Tabs */}
         <div className="flex bg-slate-50 px-6 gap-6">
-          <TabButton active={activeTab === 'Owner'} onClick={() => setActiveTab('Owner')} icon={<User size={18} />} label="Chủ hộ & Người liên quan" />
-          <TabButton active={activeTab === 'Address'} onClick={() => setActiveTab('Address')} icon={<Navigation size={18} />} label="Địa chỉ" />
-          <TabButton active={activeTab === 'Legal'} onClick={() => setActiveTab('Legal')} icon={<FileText size={18} />} label="Pháp lý" />
-          <TabButton active={activeTab === 'Technical'} onClick={() => setActiveTab('Technical')} icon={<Settings size={18} />} label="Kỹ thuật" />
-          <TabButton active={activeTab === 'Map'} onClick={() => setActiveTab('Map')} icon={<MapPin size={18} />} label="Vị trí" />
+          <TabButton active={activeTab === 'Owner'} onClick={() => setActiveTab('Owner'} icon={<User size={18} />} label="Chủ hộ & Người liên quan" />
+          <TabButton active={activeTab === 'Address'} onClick={() => setActiveTab('Address'} icon={<Navigation size={18} />} label="Địa chỉ" />
+          <TabButton active={activeTab === 'Legal'} onClick={() => setActiveTab('Legal'} icon={<FileText size={18} />} label="Pháp lý" />
+          <TabButton active={activeTab === 'Technical'} onClick={() => setActiveTab('Technical'} icon={<Settings size={18} />} label="Kỹ thuật" />
+          <TabButton active={activeTab === 'Map'} onClick={() => setActiveTab('Map'} icon={<MapPin size={18} />} label="Vị trí" />
         </div>
 
         {/* Content */}
