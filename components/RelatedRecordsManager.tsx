@@ -7,7 +7,7 @@ import {
 import { 
   X, Plus, ShieldAlert, Heart, Award, 
   ShieldCheck, HandHeart, Trash2, Edit, Home, MapPin,
-  Search, ChevronLeft, ChevronRight
+  Search, ChevronLeft, ChevronRight, FileSpreadsheet
 } from 'lucide-react';
 
 interface RelatedRecordsManagerProps {
@@ -54,6 +54,73 @@ const RelatedRecordsManager: React.FC<RelatedRecordsManagerProps> = ({
     setCurrentPages(prev => ({ ...prev, [id]: newPage }));
   };
 
+  const handleExportExcel = () => {
+    let csvContent = "\uFEFF"; // UTF-8 BOM for Vietnamese character support
+    
+    // Header section for the House
+    csvContent += `BÁO CÁO TỔNG HỢP ĐỐI TƯỢNG GẮN VỚI SỐ NHÀ\n`;
+    csvContent += `Địa chỉ,${house.SoNha} ${house.Duong}\n`;
+    csvContent += `Chủ hộ,${house.TenChuHo}\n`;
+    csvContent += `Ngày xuất,${new Date().toLocaleString('vi-VN')}\n\n`;
+
+    // Function to sanitize CSV data
+    const sanitize = (val: any) => {
+      const s = String(val || '');
+      return s.includes(',') ? `"${s}"` : s;
+    };
+
+    // 1. Generals
+    csvContent += `1. DANH SÁCH TƯỚNG LĨNH\n`;
+    csvContent += `Họ và tên,Quan hệ,Diện,Tình trạng,Người nhận thay,Hình thức nhận,Ngân hàng,Số tài khoản\n`;
+    generals.forEach(g => {
+      csvContent += `${sanitize(g.HoTen)},${sanitize(g.QuanHe)},${sanitize(g.Dien)},${sanitize(g.TinhTrang)},${sanitize(g.NguoiNhanThay)},${sanitize(g.HinhThucNhan)},${sanitize(g.NganHang)},${sanitize(g.SoTaiKhoan)}\n`;
+    });
+    csvContent += `\n`;
+
+    // 2. Merits
+    csvContent += `2. DANH SÁCH NGƯỜI CÓ CÔNG\n`;
+    csvContent += `Họ và tên,Quan hệ,Loại đối tượng,Số hồ sơ,Số tiền trợ cấp,Người nhận thay\n`;
+    merits.forEach(m => {
+      csvContent += `${sanitize(m.HoTen)},${sanitize(m.QuanHe)},${sanitize(m.LoaiDoiTuong)},${sanitize(m.SoQuanLyHS)},${m.SoTien},${sanitize(m.NguoiNhanThay)}\n`;
+    });
+    csvContent += `\n`;
+
+    // 3. Medals
+    csvContent += `3. DANH SÁCH HUÂN CHƯƠNG KHÁNG CHIẾN\n`;
+    csvContent += `Họ và tên,Quan hệ,Loại huân chương,Số hồ sơ,Số tiền,Người nhận thay\n`;
+    medals.forEach(m => {
+      csvContent += `${sanitize(m.HoTen)},${sanitize(m.QuanHe)},${sanitize(m.LoaiDoiTuong)},${sanitize(m.SoQuanLyHS)},${m.SoTien},${sanitize(m.NguoiNhanThay)}\n`;
+    });
+    csvContent += `\n`;
+
+    // 4. Policies
+    csvContent += `4. DANH SÁCH ĐỐI TƯỢNG CHÍNH SÁCH\n`;
+    csvContent += `Họ và tên,Quan hệ,Diện chính sách,Số hồ sơ,Số tiền,Tỷ lệ tổn thương\n`;
+    policies.forEach(p => {
+      csvContent += `${sanitize(p.HoTen)},${sanitize(p.QuanHe)},${sanitize(p.LoaiDienChinhSach)},${sanitize(p.SoQuanLyHS)},${p.SoTien},${sanitize(p.TyLeTonThuong)}\n`;
+    });
+    csvContent += `\n`;
+
+    // 5. Social Protection
+    csvContent += `5. DANH SÁCH BẢO TRỢ XÃ HỘI\n`;
+    csvContent += `Họ và tên,Quan hệ,Diện bảo trợ,Số hồ sơ,Số tiền,Người nhận thay\n`;
+    socialProtections.forEach(s => {
+      csvContent += `${sanitize(s.HoTen)},${sanitize(s.QuanHe)},${sanitize(s.LoaiDien)},${sanitize(s.SoQuanLyHS)},${s.SoTien},${sanitize(s.NguoiNhanThay)}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    const fileName = `Ho_So_Doi_Tuong_${house.SoNha}_${house.Duong.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
@@ -74,9 +141,19 @@ const RelatedRecordsManager: React.FC<RelatedRecordsManagerProps> = ({
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-all text-slate-400 hover:text-slate-600">
-            <X size={24} />
-          </button>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black shadow-lg shadow-emerald-100 transition-all active:scale-95"
+            >
+              <FileSpreadsheet size={16} /> Xuất Excel tổng hợp
+            </button>
+            <div className="w-px h-8 bg-slate-200 mx-1"></div>
+            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-all text-slate-400 hover:text-slate-600">
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
