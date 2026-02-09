@@ -199,7 +199,7 @@ const HouseForm: React.FC<HouseFormProps> = ({
                               <span className="flex items-center gap-1 text-slate-400 font-medium"><HeartOff size={12} /> {member.TrangThai}</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                          <td className="px-4 py-3 text-right">
                             <button type="button" onClick={() => removeFamilyMember(member.id)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg">
                               <Trash2 size={14} />
                             </button>

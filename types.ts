@@ -17,6 +17,12 @@ export interface GeneralStatus {
   code: string;
 }
 
+export interface MeritType {
+  id: string;
+  name: string;
+  code: string;
+}
+
 export interface Neighborhood {
   id: string;
   nameNew: string;
@@ -62,13 +68,13 @@ export interface PublicLandRecord {
   Dexuatcuap: string;
   Dexuacuaph: string;
   Ghichu: string;
-  X: number; // Kinh độ tâm
-  Y: number; // Vĩ độ tâm
-  geometry?: Array<[number, number]>; // Danh sách các điểm ranh giới thửa đất
+  X: number;
+  Y: number;
+  geometry?: Array<[number, number]>;
   Status: 'Active' | 'Inactive';
   CreatedAt: string;
   CreatedBy: string;
-  LinkedHouseId?: string; // Liên kết tới hồ sơ số nhà
+  LinkedHouseId?: string;
 }
 
 export interface GeneralRecord {
@@ -85,6 +91,20 @@ export interface GeneralRecord {
   CreatedBy: string;
 }
 
+export interface MeritRecord {
+  id: string;
+  LinkedHouseId: string;
+  HoTen: string; // Họ và tên liệt sỹ / đối tượng
+  QuanHe: string; // Quan hệ với chủ nhà
+  LoaiDoiTuong: string; // Thương binh, Con LS...
+  SoQuanLyHS: string;
+  SoTien: number;
+  GhiChu?: string;
+  Status: 'Active' | 'Inactive';
+  CreatedAt: string;
+  CreatedBy: string;
+}
+
 export interface HouseNumberRecord {
   id: string;
   TenChuHo: string;
@@ -94,7 +114,7 @@ export interface HouseNumberRecord {
   NgaySinhCh: string;
   QuocTich: string;
   DanToc: string;
-  QuanHeChuHo: FamilyMember[]; // Chuyển từ string sang danh sách thành viên
+  QuanHeChuHo: FamilyMember[];
   DiaChiLien: string;
   SoNha: string;
   SoNhaTam?: string;

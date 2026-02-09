@@ -1,5 +1,5 @@
 
-import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralStatus } from './types';
+import { HouseNumberRecord, Street, Neighborhood, PublicLandRecord, WardBoundary, RelationshipType, GeneralStatus, MeritType } from './types';
 
 export const INITIAL_STREETS: Street[] = [
   { id: 'st1', name: 'Lê Lợi', code: 'D001' },
@@ -26,6 +26,15 @@ export const INITIAL_GENERAL_STATUS: GeneralStatus[] = [
   { id: 'gs2', name: 'Nghỉ hưu', code: 'NGHI_HUU' },
   { id: 'gs3', name: 'Đã mất', code: 'DA_MAT' },
   { id: 'gs4', name: 'Chuyển công tác', code: 'CHUYEN_CONG_TAC' }
+];
+
+export const INITIAL_MERIT_TYPES: MeritType[] = [
+  { id: 'mt1', name: 'Thương binh', code: 'THUONG_BINH' },
+  { id: 'mt2', name: 'Bệnh binh', code: 'BENH_BINH' },
+  { id: 'mt3', name: 'Con liệt sỹ', code: 'CON_LS' },
+  { id: 'mt4', name: 'Vợ liệt sỹ', code: 'VO_LS' },
+  { id: 'mt5', name: 'Người hoạt động kháng chiến bị nhiễm chất độc hóa học', code: 'CD_HOA_HOC' },
+  { id: 'mt6', name: 'Người có công giúp đỡ cách mạng', code: 'GIUP_DO_CM' }
 ];
 
 export const INITIAL_WARD_BOUNDARY: WardBoundary = {
