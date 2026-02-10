@@ -389,11 +389,11 @@ const HouseForm: React.FC<HouseFormProps> = ({
 
         {/* Tabs */}
         <div className="flex bg-slate-50 px-6 gap-6">
-          <TabButton active={activeTab === 'Owner'} onClick={() => setActiveTab('Owner'} icon={<User size={18} />} label="Chủ hộ & Người liên quan" />
-          <TabButton active={activeTab === 'Address'} onClick={() => setActiveTab('Address'} icon={<Navigation size={18} />} label="Địa chỉ" />
-          <TabButton active={activeTab === 'Legal'} onClick={() => setActiveTab('Legal'} icon={<FileText size={18} />} label="Pháp lý" />
-          <TabButton active={activeTab === 'Technical'} onClick={() => setActiveTab('Technical'} icon={<Settings size={18} />} label="Kỹ thuật" />
-          <TabButton active={activeTab === 'Map'} onClick={() => setActiveTab('Map'} icon={<MapPin size={18} />} label="Vị trí" />
+          <TabButton active={activeTab === 'Owner'} onClick={() => setActiveTab('Owner')} icon={<User size={18} />} label="Chủ hộ & Người liên quan" />
+          <TabButton active={activeTab === 'Address'} onClick={() => setActiveTab('Address')} icon={<Navigation size={18} />} label="Địa chỉ" />
+          <TabButton active={activeTab === 'Legal'} onClick={() => setActiveTab('Legal')} icon={<FileText size={18} />} label="Pháp lý" />
+          <TabButton active={activeTab === 'Technical'} onClick={() => setActiveTab('Technical')} icon={<Settings size={18} />} label="Kỹ thuật" />
+          <TabButton active={activeTab === 'Map'} onClick={() => setActiveTab('Map')} icon={<MapPin size={18} />} label="Vị trí" />
         </div>
 
         {/* Content */}
