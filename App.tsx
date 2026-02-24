@@ -321,8 +321,8 @@ const App: React.FC = () => {
   };
 
   const handleAddOrEditHouse = (data: Partial<HouseNumberRecord>) => {
-    if (editingRecord || data.id) {
-      const targetId = editingRecord?.id || data.id;
+    if (editingRecord) {
+      const targetId = editingRecord.id;
       setRecords(prev => prev.map(r => r.id === targetId ? { ...r, ...data, UpdatedAt: new Date().toISOString() } as HouseNumberRecord : r));
     } else {
       const newId = Math.random().toString(36).substr(2, 9);
@@ -380,8 +380,8 @@ const App: React.FC = () => {
   };
 
   const handleAddOrEditLand = (data: Partial<PublicLandRecord>) => {
-    if (editingLand || data.id) {
-      const targetId = editingLand?.id || data.id;
+    if (editingLand) {
+      const targetId = editingLand.id;
       setPublicLands(prev => prev.map(l => l.id === targetId ? { ...l, ...data } as PublicLandRecord : l));
     } else {
       const newRecord: PublicLandRecord = {
@@ -405,8 +405,8 @@ const App: React.FC = () => {
 
   const handleAddOrEditGeneral = (dataList: Partial<GeneralRecord>[]) => {
     const data = dataList[0];
-    if (editingGeneral || data.id) {
-      const targetId = editingGeneral?.id || data.id;
+    if (editingGeneral) {
+      const targetId = editingGeneral.id;
       setGenerals(prev => prev.map(g => g.id === targetId ? { ...g, ...data, UpdatedAt: new Date().toISOString() } as GeneralRecord : g));
     } else {
       const newRecords = dataList.map(data => ({
@@ -430,8 +430,8 @@ const App: React.FC = () => {
 
   const handleAddOrEditMerit = (dataList: Partial<MeritRecord>[]) => {
     const data = dataList[0];
-    if (editingMerit || data.id) {
-      const targetId = editingMerit?.id || data.id;
+    if (editingMerit) {
+      const targetId = editingMerit.id;
       setMerits(prev => prev.map(m => m.id === targetId ? { ...m, ...data, UpdatedAt: new Date().toISOString() } as MeritRecord : m));
     } else {
       const newRecords = dataList.map(data => ({
@@ -455,8 +455,8 @@ const App: React.FC = () => {
 
   const handleAddOrEditMedal = (dataList: Partial<MedalRecord>[]) => {
     const data = dataList[0];
-    if (editingMedal || data.id) {
-      const targetId = editingMedal?.id || data.id;
+    if (editingMedal) {
+      const targetId = editingMedal.id;
       setMedals(prev => prev.map(m => m.id === targetId ? { ...m, ...data, UpdatedAt: new Date().toISOString() } as MedalRecord : m));
     } else {
       const newRecords = dataList.map(data => ({
@@ -480,8 +480,8 @@ const App: React.FC = () => {
 
   const handleAddOrEditPolicy = (dataList: Partial<PolicyRecord>[]) => {
     const data = dataList[0];
-    if (editingPolicy || data.id) {
-      const targetId = editingPolicy?.id || data.id;
+    if (editingPolicy) {
+      const targetId = editingPolicy.id;
       setPolicies(prev => prev.map(p => p.id === targetId ? { ...p, ...data, UpdatedAt: new Date().toISOString() } as PolicyRecord : p));
     } else {
       const newRecords = dataList.map(data => ({
@@ -505,8 +505,8 @@ const App: React.FC = () => {
 
   const handleAddOrEditSocial = (dataList: Partial<SocialProtectionRecord>[]) => {
     const data = dataList[0];
-    if (editingSocial || data.id) {
-      const targetId = editingSocial?.id || data.id;
+    if (editingSocial) {
+      const targetId = editingSocial.id;
       setSocialProtections(prev => prev.map(s => s.id === targetId ? { ...s, ...data, UpdatedAt: new Date().toISOString() } as SocialProtectionRecord : s));
     } else {
       const newRecords = dataList.map(data => ({
